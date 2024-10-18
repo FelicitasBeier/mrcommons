@@ -55,9 +55,11 @@ calcProduction <- function(products = "kcr", cellular = FALSE, # nolint
       mappingCountryCell$coordiso <- paste(mappingCountryCell$coords, mappingCountryCell$iso, sep = ".")
 
       # crop mapping from LPJmL to MAgPIE categories
-      mappingMAG2LPJ <- toolGetMapping(type = "sectoral", name = "MAgPIE_LPJmL.csv", where = "mappingfolder")
+      mappingMAG2LPJ <- toolGetMapping(name = "MAgPIE_LPJmL.csv", type = "sectoral",
+                                       where = "mrlandcore")
       mappingMAG2LPJ <- mappingMAG2LPJ[which(mappingMAG2LPJ$MAgPIE %in% magCropTypes), ]
-      yieldsMAG      <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ, from = "LPJmL", to = "MAgPIE",
+      yieldsMAG      <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ,
+                                      from = "LPJmL5", to = "MAgPIE",
                                       dim = 3.1, partrel = TRUE)[, , magCropTypes]
 
       cropareaMAG    <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE,

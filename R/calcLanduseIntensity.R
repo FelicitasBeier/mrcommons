@@ -26,9 +26,10 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
   if (sectoral %in% c("kcr", "lpj")) {
     # Mappings
     cropsMAgPIE  <- findset("kcr")
-    mag2lpj      <- toolGetMapping(type = "sectoral", name = "MAgPIE_LPJmL.csv", where = "mappingfolder")
+    mag2lpj      <- toolGetMapping(name = "MAgPIE_LPJmL.csv", type = "sectoral",
+                                   where = "mrlandcore")
     mag2lpj      <- mag2lpj[mag2lpj$MAgPIE %in% cropsMAgPIE, ]
-    cropsLPJmL   <- levels(droplevels(factor(mag2lpj$LPJmL)))
+    cropsLPJmL   <- levels(droplevels(factor(mag2lpj$LPJmL5)))
 
     # Load LPJ yields and area on cell level
     yieldsLPJmL  <- collapseNames(calcOutput("LPJmL_new", version = "ggcmi_phase3_nchecks_9ca735cb",
@@ -37,7 +38,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
     if (sectoral == "kcr") {
       yieldsLPJmL   <- toolAggregate(yieldsLPJmL, rel = mag2lpj,
-                                     from = "LPJmL", to = "MAgPIE", dim = 3.1)
+                                     from = "LPJmL5", to = "MAgPIE", dim = 3.1)
     }
 
     cropareaLPJmL   <- calcOutput("Croparea", sectoral = sectoral, physical = TRUE,
@@ -54,7 +55,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
     if (sectoral == "lpj") {
       productionFAO <- toolAggregate(productionFAO, rel = mag2lpj,
-                                     from = "MAgPIE", to = "LPJmL", dim = 3.1)
+                                     from = "MAgPIE", to = "LPJmL5", dim = 3.1)
     }
 
     # Getting overlapping countries
