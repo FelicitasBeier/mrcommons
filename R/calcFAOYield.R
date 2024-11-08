@@ -31,7 +31,7 @@ calcFAOYield <- function(physical = TRUE, attributes = "dm", irrigation = FALSE,
 
     area <- calcOutput("CropareaLandInG", sectoral = "kcr", physical = physical,
                        irrigation = irrigation, selectyears = selectyears,
-                       cellular = cellular, cells = "lpjcell", aggregate = FALSE)
+                       cellular = cellular, aggregate = FALSE)
   } else {
     stop("Please specify which area should be used for calculation.
          Note: LandInG should be FAO-consistent.")
@@ -69,8 +69,8 @@ calcFAOYield <- function(physical = TRUE, attributes = "dm", irrigation = FALSE,
   yield[na] <- low[na]
 
   if (!is.null(average)) {
-    area    <- toolTimeAverage(area, average)
-    yield   <- toolTimeAverage(yield, average)
+    area    <- madrat::toolTimeAverage(area, average)
+    yield   <- madrat::toolTimeAverage(yield, average)
   }
 
   years <- findset("past")
