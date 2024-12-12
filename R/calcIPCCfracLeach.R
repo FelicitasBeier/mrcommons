@@ -4,6 +4,9 @@
 #' Velthof, Gerardus Lambertus, and J. Mosquera Losada. 2011. Calculation of Nitrous Oxide
 #' Emission from Agriculture in the Netherlands: Update of Emission Factors and Leaching Fraction.
 #' Alterra. http://library.wur.nl/WebQuery/wurpubs/406284.
+#'
+#' @param lpjml LPJmL version passed to calcLPJmLtransform for potential evapotranspiration
+#' @param climatetype Climate model passed to calcLPJmLtransform for potential evapotranspiration
 #' @param cellular if true, returned on cell level
 #'
 #' @return List of magpie objects with results on country level, weight on country level, unit and description.
@@ -17,24 +20,34 @@
 #'
 #' @importFrom magpiesets findset
 
-calcIPCCfracLeach <- function(cellular = TRUE) {
+calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
+                              climatetype = "MRI-ESM2-0:ssp370",
+                              cellular    = TRUE) {
 
   if (cellular) {
 
     past <- findset("past")
+
     # approach based on
     # Velthof, Gerardus Lambertus, and J. Mosquera Losada. 2011. Calculation of Nitrous Oxide Emission
     # from Agriculture in the Netherlands: Update of Emission Factors and Leaching Fraction. Alterra.
     # http://library.wur.nl/WebQuery/wurpubs/406284.
     # estimate potential evapotranspiration using LPJmL (based on Priestley–Taylor PET model)
 
-    pet    <- calcOutput("LPJmL_new", version = "LPJmL4_for_MAgPIE_44ac93de",
-                         climatetype = "GSWP3-W5E5:historical", subtype = "mpet",
-                         stage = "smoothed", aggregate = FALSE)[, past, ]
-    prec   <- calcOutput("LPJmLClimateInput_new", lpjmlVersion = "LPJmL4_for_MAgPIE_44ac93de",
+    # HACKATHON - This function now returns higher than its "max value".
+    #This could be because LPJmlCliamteInput_new isn't changed?
+    pet    <- calcOutput("LPJmLtransform",
+                         lpjmlversion = lpjml,
+                         climatetype  = climatetype,
+                         subtype      = "pnv:pet",
+                         aggregate    = FALSE)[, past, ]
+
+    prec   <- calcOutput("LPJmLClimateInput_new",
+                         lpjmlVersion = "LPJmL4_for_MAgPIE_44ac93de",
                          climatetype  = "GSWP3-W5E5:historical",
-                         variable = "precipitation:monthlySum",
-                         stage = "smoothed", aggregate = FALSE)[, past, ]
+                         variable     = "precipitation:monthlySum",
+                         stage        = "smoothed",
+                         aggregate    = FALSE)[, past, ]
 
     ratio <- prec / (pet + 0.001)
 
