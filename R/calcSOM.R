@@ -30,9 +30,10 @@ calcSOM <- function(climatetype = "historical", subtype = "stock", cells = "lpjc
 
   years      <- seq(1951, 2010, 1)
 
-  soilc      <- calcOutput("LPJmL_new", version = "LPJmL4_for_MAgPIE_44ac93de",
-                           climatetype = "GSWP3-W5E5:historical", subtype = "soilc_layer",
-                           stage = "raw", aggregate = FALSE, years = years)
+  cfgLPJmL   <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+  soilc      <- calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                           climatetype = cfgLPJmL$baselineHist, subtype = "soilc_layer",
+                           stage = "raw:cut", aggregate = FALSE, years = years)
 
   soilc      <- setNames(soilc[, , 1] + 1 / 3 * soilc[, , 2], "soilc")
 
@@ -155,12 +156,11 @@ calcSOM <- function(climatetype = "historical", subtype = "stock", cells = "lpjc
   out <- out[, -c(1:10), ]
   if (cells == "magpiecell") out <- toolCoord2Isocell(out)
 
-  return(list(
-    x            = out,
-    weight       = weight,
-    unit         = unit,
-    description  = paste("Carbon in cropland and non-cropland soils, as well as change",
-                         "over time due to built-up or loss. Change is not equivalen to",
-                         "the difference in carbon_cropland_soils over time, as the area changes."),
-    isocountries = FALSE))
+  return(list(x            = out,
+              weight       = weight,
+              unit         = unit,
+              description  = paste("Carbon in cropland and non-cropland soils, as well as change",
+                                   "over time due to built-up or loss. Change is not equivalen to",
+                                   "the difference in carbon_cropland_soils over time, as the area changes."),
+              isocountries = FALSE))
 }

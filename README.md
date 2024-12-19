@@ -39,17 +39,18 @@ In case of questions / problems please contact Jan Philipp Dietrich <dietrich@pi
 
 To cite package **mrcommons** in publications use:
 
-Bodirsky B, Karstens K, Baumstark L, Weindl I, Wang X, Mishra A, Wirth S, Stevanovic M, Steinmetz N, Kreidenweis U, Rodrigues R, Popov R, Humpenoeder F, Giannousakis A, Levesque A, Klein D, Araujo E, Beier F, Oeser J, Pehl M, Leip D, Crawford M, Molina Bacca E, von Jeetze P, Martinelli E, Schreyer F, Soergel B, Sauer P, Hötten D, Hasse R, Abrahão G, Weigmann P, Dietrich J (2024). _mrcommons: MadRat commons Input Data Library_. doi:10.5281/zenodo.3822009 <https://doi.org/10.5281/zenodo.3822009>, R package version 1.47.0, <https://github.com/pik-piam/mrcommons>.
+Bodirsky B, Karstens K, Baumstark L, Weindl I, Wang X, Mishra A, Wirth S, Stevanovic M, Steinmetz N, Kreidenweis U, Rodrigues R, Popov R, Humpenoeder F, Giannousakis A, Levesque A, Klein D, Araujo E, Beier F, Oeser J, Pehl M, Leip D, Crawford M, Molina Bacca E, von Jeetze P, Martinelli E, Schreyer F, Soergel B, Sauer P, Hötten D, Hasse R, Abrahão G, Weigmann P, Dietrich J (2024). "mrcommons: MadRat commons Input Data Library." doi:10.5281/zenodo.3822009 <https://doi.org/10.5281/zenodo.3822009>, Version: 1.47.0, <https://github.com/pik-piam/mrcommons>.
 
 A BibTeX entry for LaTeX users is
 
  ```latex
-@Manual{,
+@Misc{,
   title = {mrcommons: MadRat commons Input Data Library},
   author = {Benjamin Leon Bodirsky and Kristine Karstens and Lavinia Baumstark and Isabelle Weindl and Xiaoxi Wang and Abhijeet Mishra and Stephen Wirth and Mishko Stevanovic and Nele Steinmetz and Ulrich Kreidenweis and Renato Rodrigues and Roman Popov and Florian Humpenoeder and Anastasis Giannousakis and Antoine Levesque and David Klein and Ewerton Araujo and Felicitas Beier and Julian Oeser and Michaja Pehl and Debbora Leip and Michael Crawford and Edna {Molina Bacca} and Patrick {von Jeetze} and Eleonora Martinelli and Felix Schreyer and Bjoern Soergel and Pascal Sauer and David Hötten and Robin Hasse and Gabriel Abrahão and Pascal Weigmann and Jan Philipp Dietrich},
-  year = {2024},
-  note = {R package version 1.47.0},
-  url = {https://github.com/pik-piam/mrcommons},
   doi = {10.5281/zenodo.3822009},
+  date = {2024-12-19},
+  year = {2024},
+  url = {https://github.com/pik-piam/mrcommons},
+  note = {Version: 1.47.0},
 }
 ```

@@ -32,9 +32,17 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     cropsLPJmL   <- levels(droplevels(factor(mag2lpj$LPJmL5)))
 
     # Load LPJ yields and area on cell level
-    yieldsLPJmL  <- collapseNames(calcOutput("LPJmL_new", version = "ggcmi_phase3_nchecks_9ca735cb",
-                                             climatetype = "GSWP3-W5E5:historical", subtype = "harvest",
-                                             stage = "smoothed", aggregate = FALSE)[, selectyears, cropsLPJmL])
+    cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+    yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                                             climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
+                                             stage = "smoothed:cut", aggregate = FALSE)[, selectyears, cropsLPJmL])
+    # yieldsLPJmL  <- mbind(
+    #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+    #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
+    #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, cropsLPJmL][, , "rainfed"],
+    #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+    #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
+    #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, cropsLPJmL][, , "irrigated"])
 
     if (sectoral == "kcr") {
       yieldsLPJmL   <- toolAggregate(yieldsLPJmL, rel = mag2lpj,
@@ -42,8 +50,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     }
 
     cropareaLPJmL   <- calcOutput("Croparea", sectoral = sectoral, physical = TRUE,
-                                  cellular = TRUE, cells = "lpjcell",
-                                  irrigation = TRUE, aggregate = FALSE)
+                                  cellular = TRUE, irrigation = TRUE, aggregate = FALSE)
 
     productionLPJmL <- yieldsLPJmL * cropareaLPJmL
     # Aggregate to countries and across irrigation dimension
@@ -98,13 +105,18 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     #  ?Old comment: if only one indicator is required over all crops, I suggest a weighting over area harvested
 
   } else if (sectoral == "pasture") {
-
     # Load LPJ yields and area on cell level
-    yieldsLPJmL           <- calcOutput("LPJmL_new", version = "ggcmi_phase3_nchecks_9ca735cb",
-                                        climatetype = "GSWP3-W5E5:historical", subtype = "harvest", stage = "smoothed",
-                                        aggregate = FALSE, years = selectyears)[, , "mgrass.rainfed"]
-    pastareaMAgPIE        <- calcOutput("LanduseInitialisation", cellular = TRUE, cells = "lpjcell",
-                                        aggregate = FALSE)[, , "past"]
+    cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+    yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                                             climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
+                                             stage = "smoothed:cut", aggregate = FALSE,
+                                             years = selectyears)[, , "mgrass.rainfed"])
+    # yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+    #                                          climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
+    #                                          stage = "smoothed:cut", aggregate = FALSE,
+    #                                          years = selectyears)[, , "mgrass.rainfed"])
+
+    pastareaMAgPIE        <- calcOutput("LanduseInitialisation", cellular = TRUE, aggregate = FALSE)[, , "past"]
     getNames(yieldsLPJmL) <- getNames(pastareaMAgPIE) <- "pasture"
 
     productionLPJmL  <- yieldsLPJmL * pastareaMAgPIE

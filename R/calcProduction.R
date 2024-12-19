@@ -3,7 +3,6 @@
 #'
 #' @param products   setname of products ("kcr", "kli", "pasture")
 #' @param cellular   if TRUE production is calculate on cellular level
-#' @param cells      Switch between "magpiecell" (59199) and "lpjcell" (67420)
 #' @param calibrated if FALSE, lpj yields will be used uncalibrated,
 #'                   if true, calibrated on FAP production on country level
 #' @param attributes "All" for all crop attributes, or specify e.g. DM (dry matter), Nr (nitrogen) for memory reduction
@@ -23,8 +22,7 @@
 
 
 calcProduction <- function(products = "kcr", cellular = FALSE, # nolint
-                           cells = "lpjcell", calibrated = TRUE,
-                           attributes = "all", irrigation = FALSE) {
+                           calibrated = TRUE, attributes = "all", irrigation = FALSE) {
 
   selectyears <- findset("past")
 
@@ -47,9 +45,18 @@ calcProduction <- function(products = "kcr", cellular = FALSE, # nolint
       ################################
       ### crop production cellular ###
       ################################
-      yieldsLPJ      <- calcOutput("LPJmL_new", version = "ggcmi_phase3_nchecks_9ca735cb",
-                                   climatetype = "GSWP3-W5E5:historical", subtype = "harvest",
-                                   stage = "smoothed", aggregate = FALSE)[, selectyears, ]
+
+      cfgLPJmL   <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+      yieldsLPJ  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                                             climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
+                                             stage = "smoothed:cut", aggregate = FALSE)[, selectyears, ])
+      # yieldsLPJ  <- mbind(
+      #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+      #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
+      #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, "rainfed"],
+      #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+      #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
+      #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, "irrigated"])
 
       mappingCountryCell <- toolGetMappingCoord2Country()
       mappingCountryCell$coordiso <- paste(mappingCountryCell$coords, mappingCountryCell$iso, sep = ".")
@@ -62,8 +69,7 @@ calcProduction <- function(products = "kcr", cellular = FALSE, # nolint
                                       from = "LPJmL5", to = "MAgPIE",
                                       dim = 3.1, partrel = TRUE)[, , magCropTypes]
 
-      cropareaMAG    <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE,
-                                   cellular = TRUE, cells = "lpjcell",
+      cropareaMAG    <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE, cellular = TRUE,
                                    irrigation = TRUE, aggregate = FALSE)[, selectyears, magCropTypes]
 
       if (calibrated) {
@@ -243,13 +249,17 @@ calcProduction <- function(products = "kcr", cellular = FALSE, # nolint
       ### pasture production celluluar ###
       ####################################
 
-      areaPasture    <- collapseNames(calcOutput("LanduseInitialisation",
-                                                 cellular = TRUE, cells = "lpjcell",
+      areaPasture    <- collapseNames(calcOutput("LanduseInitialisation", cellular = TRUE,
                                                  aggregate = FALSE)[, selectyears, "past"])
-      yieldsPasture  <- collapseNames(calcOutput("LPJmL_new", version = "ggcmi_phase3_nchecks_9ca735cb",
-                                                 climatetype = "GSWP3-W5E5:historical", subtype = "harvest",
-                                                 stage = "smoothed", aggregate = FALSE,
-                                                 years = selectyears)[, , "mgrass.rainfed"])
+      cfgLPJmL      <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+      yieldsPasture <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                                                climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
+                                                stage = "smoothed:cut", aggregate = FALSE,
+                                                years = selectyears)[, , "mgrass.rainfed"])
+      # yieldsPasture <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+      #                                           climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
+      #                                           stage = "smoothed:cut", aggregate = FALSE,
+      #                                           years = selectyears)[, , "mgrass.rainfed"])
 
       mappingCountryCell <- toolGetMappingCoord2Country()
       mappingCountryCell$coordiso <- paste(mappingCountryCell$coords, mappingCountryCell$iso, sep = ".")
@@ -332,12 +342,6 @@ calcProduction <- function(products = "kcr", cellular = FALSE, # nolint
 
   if (any(attributes != "all")) {
     x <- x[, , attributes]
-  }
-
-  if (cellular) {
-    if (cells == "magpiecell") {
-      x <- toolCoord2Isocell(x, cells = cells)
-    }
   }
 
   # Check for NAs and negatives
