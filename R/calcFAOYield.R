@@ -18,7 +18,7 @@ calcFAOYield <- function(physical = TRUE, attributes = "dm", irrigation = FALSE,
 
   production <- calcOutput("Production", products = "kcr", attributes = attributes,
                            irrigation = irrigation, cellular = cellular,
-                           cells = "lpjcell", aggregate = FALSE)
+                           aggregate = FALSE)
   selectyears <- getItems(production, dim = "year")
 
   if (areaSource == "FAO") {

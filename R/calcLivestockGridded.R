@@ -40,7 +40,7 @@ calcLivestockGridded <- function(details = FALSE) {
 
   # calculate extensive ruminant production per cell from pasture production share
   pastureProduction     <- collapseNames(calcOutput("Production", products = "pasture",
-                                                    cellular = TRUE, cells = "lpjcell",
+                                                    cellular = TRUE,
                                                     calibrated = TRUE, aggregate = FALSE)[, selectyears, "nr"])
   countries <- getItems(pastureProduction, dim = 1.3)
   extensiveRuminantCell <- toolAggregate(extensiveRuminant[countries, , ], rel = countryToCell,
@@ -49,7 +49,7 @@ calcLivestockGridded <- function(details = FALSE) {
 
   # calculate intensive ruminant production per cell from cropland share
   kcrProduction <- calcOutput("Production", products = "kcr",
-                              cellular = TRUE, cells = "lpjcell", aggregate = FALSE)
+                              cellular = TRUE, aggregate = FALSE)
   kcrProduction <- kcrProduction[, selectyears, "dm"][, , c("betr", "begr"), invert = TRUE]
   cropProduction        <- dimSums(collapseNames(kcrProduction), dim = 3)
   intensiveRuminantCell <- toolAggregate(intensiveRuminant[countries, , ], rel = countryToCell,

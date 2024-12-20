@@ -132,7 +132,7 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
     feedBalanceflow <- calcOutput("FeedBalanceflow", cellular = cellular, cells = "lpjcell",
                                   products = products, future = future, aggregate = FALSE)
     livestockProduction <- collapseNames(calcOutput("Production", products = "kli",
-                                                    cellular = cellular, cells = "lpjcell",
+                                                    cellular = cellular,
                                                     aggregate = FALSE)[, , kli][, past, "dm"])
     livestockProduction <- add_columns(livestockProduction, addnm = "fish", dim = 3.1)
     livestockProduction[, , "fish"] <- 0

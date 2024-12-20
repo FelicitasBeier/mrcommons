@@ -30,7 +30,7 @@ calcFeedPast <- function(balanceflow = TRUE, cellular = FALSE, cells = "lpjcell"
   products2           <- findset(products, noset = "original")
 
   kliProduction       <- calcOutput("Production", products = "kli",
-                                    cellular = cellular, cells = "lpjcell", aggregate = FALSE)
+                                    cellular = cellular, aggregate = FALSE)
   livestockProduction <- collapseNames(kliProduction[, past, "dm"])
   animalProduction    <- add_columns(livestockProduction, addnm = "fish", dim = 3.1)
   animalProduction[, , "fish"]        <- 0

@@ -49,7 +49,7 @@ calcResBiomass <- function(cellular = FALSE, cells = "lpjcell",
                                  irrigation = irrigation, aggregate = FALSE)
     # cyears here above
     cropProduction <- collapseNames(calcOutput("Production", products = "kcr", attributes = "dm",
-                                               cellular = cellular, cells = "lpjcell",
+                                               cellular = cellular,
                                                irrigation = irrigation, aggregate = FALSE))
     cyears         <- intersect(getYears(harvestedArea),
                                 getYears(cropProduction))
