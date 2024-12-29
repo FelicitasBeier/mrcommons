@@ -17,6 +17,7 @@ calcSOMlossN <- function(cellular = FALSE) {
 
   if (!cellular) {
     som <- dimSums(som, dim = c("x", "y"))
+    som <- toolCountryFill(som, fill = 0)
   }
 
   return(list(
