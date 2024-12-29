@@ -32,7 +32,7 @@ calcSOM <- function(climatetype = "historical", subtype = "stock", cells = "lpjc
 
   cfgLPJmL   <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
   soilc      <- calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                           climatetype = cfgLPJmL$baselineHist, subtype = "soilc_layer",
+                           climatetype = cfgLPJmL$baselineHist, subtype = "pnv:soilc_layer",
                            stage = "raw:cut", aggregate = FALSE, years = years)
 
   soilc      <- setNames(soilc[, , 1] + 1 / 3 * soilc[, , 2], "soilc")

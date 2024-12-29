@@ -11,9 +11,9 @@ calcIPCCfracLeach(
 )
 }
 \arguments{
-\item{lpjml}{LPJmL version passed to calcLPJmLtransform for potential evapotranspiration}
+\item{lpjml}{LPJmL version passed to calcLPJmLTransform for potential evapotranspiration}
 
-\item{climatetype}{Climate model passed to calcLPJmLtransform for potential evapotranspiration}
+\item{climatetype}{Climate model passed to calcLPJmLTransform for potential evapotranspiration}
 
 \item{cellular}{if true, returned on cell level}
 }

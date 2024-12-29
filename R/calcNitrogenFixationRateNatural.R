@@ -20,7 +20,7 @@ calcNitrogenFixationRateNatural <- function() {
 
   # evapotranspiration (in m^3 per ha)
   # as this currently uses only historical data, the lpjmlversion and climatetype is hard-coded
-  etRate <- calcOutput("LPJmLtransform",
+  etRate <- calcOutput("LPJmLTransform",
                        lpjmlversion = "lpjml5.9.5-m1",
                        climatetype  = "MRI-ESM2-0:ssp370",
                        subtype      = "pnv:transp",

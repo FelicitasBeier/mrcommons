@@ -5,8 +5,8 @@
 #' Emission from Agriculture in the Netherlands: Update of Emission Factors and Leaching Fraction.
 #' Alterra. http://library.wur.nl/WebQuery/wurpubs/406284.
 #'
-#' @param lpjml LPJmL version passed to calcLPJmLtransform for potential evapotranspiration
-#' @param climatetype Climate model passed to calcLPJmLtransform for potential evapotranspiration
+#' @param lpjml LPJmL version passed to calcLPJmLTransform for potential evapotranspiration
+#' @param climatetype Climate model passed to calcLPJmLTransform for potential evapotranspiration
 #' @param cellular if true, returned on cell level
 #'
 #' @return List of magpie objects with results on country level, weight on country level, unit and description.
@@ -36,7 +36,7 @@ calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
 
     # HACKATHON - This function now returns higher than its "max value".
     #This could be because LPJmlCliamteInput_new isn't changed?
-    pet    <- calcOutput("LPJmLtransform",
+    pet    <- calcOutput("LPJmLTransform",
                          lpjmlversion = lpjml,
                          climatetype  = climatetype,
                          subtype      = "pnv:pet",
