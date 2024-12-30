@@ -4,7 +4,7 @@
 \alias{calcClimateClass}
 \title{calcClimateClass}
 \usage{
-calcClimateClass(datasource = "koeppen", cells = "magpiecell")
+calcClimateClass(datasource = "koeppen")
 }
 \arguments{
 \item{datasource}{select source from:

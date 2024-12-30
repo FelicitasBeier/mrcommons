@@ -19,32 +19,30 @@
 #'
 #' @export
 
-calcClimateClass <- function(datasource = "koeppen", cells = "magpiecell") {
+calcClimateClass <- function(datasource = "koeppen") {
 
   if (datasource == "koeppen") {
-
-    x      <- readSource("Koeppen", subtype = "cellular", convert = "onlycorrect")
-
+    x <- readSource("Koeppen", subtype = "cellular", convert = "onlycorrect")
   } else if (grepl("ipcc", datasource)) {
-
     x <- readSource("IPCCClimate", convert = "onlycorrect")
     getNames(x) <- gsub(" ", "_", tolower(getNames(x)))
 
     if (grepl("ipccReduced", datasource)) {
-      reduceIPCC  <- toolGetMapping("IPCC2IPCCreduced.csv", type = "sectoral", where = "mappingfolder")
-      x           <- toolAggregate(x, reduceIPCC, from = "ipcc", to = datasource, dim = 3, partrel = TRUE)
+      reduceIPCC <- toolGetMapping("IPCC2IPCCreduced.csv", type = "sectoral", where = "mappingfolder")
+      x <- toolAggregate(x, reduceIPCC, from = "ipcc", to = datasource, dim = 3, partrel = TRUE)
     }
-
   } else {
     stop("Source inc calcClimateClass unkown.")
   }
 
-  if (cells == "magpiecell") x <- toolCoord2Isocell(x)
-  weight <- calcOutput("LandArea", cells = cells, aggregate = FALSE)
+  weight <- calcOutput("LandArea", aggregate = FALSE)
 
-  return(list(x = x,
-              weight = weight,
-              unit = "share",
-              description = paste("Climate classification according to:", datasource),
-              isocountries = FALSE))
+  return(list(
+    x = x,
+    weight = weight,
+    unit = "share",
+    description = paste("Climate classification according to:", datasource),
+    isocountries = FALSE
+  ))
+
 }
