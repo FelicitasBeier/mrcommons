@@ -7,7 +7,6 @@
 #'                     http://koeppen-geiger.vu-wien.ac.at/
 #'                   - ipcc, ipccReduced, ipccReduced2019 for IPCC Guideline climate classification
 #*                     `https://esdac.jrc.ec.europa.eu/projects/RenewableEnergy/Data/Climate_Zone.zip`
-#' @param cells "magpiecell" for 59199 cells or "lpjcell" for 67420 cells
 #'
 #' @return Clustered MAgPIE object on requested resolution
 #' @author Abhijeet Mishra, Kristine Karstens

@@ -20,7 +20,7 @@
 #' @importFrom magclass getSets magpie_expand new.magpie getCPR
 #' @importFrom magpiesets findset
 
-calcProduction <- function(products = "kcr",
+calcProduction <- function(products = "kcr", # nolint
                            cellular = FALSE,
                            calibrated = TRUE,
                            attributes = "all",
@@ -39,7 +39,8 @@ calcProduction <- function(products = "kcr",
       if (irrigation) {
         stop("Irrigation not yet implemented for this resolution")
       }
-      productionMAG <- collapseNames(calcOutput("FAOmassbalance_pre", aggregate = FALSE)[, , "production"][, , magCropTypes])
+      productionMAG <- collapseNames(calcOutput("FAOmassbalance_pre",
+                                                aggregate = FALSE)[, , "production"][, , magCropTypes])
       productionMAG <- add_columns(productionMAG, addnm = missing, dim = 3.1)
       productionMAG[, , missing] <- 0
     } else {
@@ -121,7 +122,8 @@ calcProduction <- function(products = "kcr",
       isoproductionMAG <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
       countries <- getItems(isoproductionMAG, dim = 1)
       prods <- getNames(productionMAG, dim = 1)
-      productionFAO <- calcOutput("FAOmassbalance", aggregate = FALSE)[, selectyears, "production.dm"][countries, , prods]
+      productionFAO <- calcOutput("FAOmassbalance",
+                                  aggregate = FALSE)[, selectyears, "production.dm"][countries, , prods]
       productionFAO <- collapseNames(productionFAO)
       isoMismatch[, , ] <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
 
@@ -354,7 +356,8 @@ calcProduction <- function(products = "kcr",
 
       isoproductionMAG <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2))
       countries <- getItems(isoproductionMAG, dim = 1)
-      productionFAO <- collapseNames(calcOutput("FAOmassbalance", aggregate = FALSE)[countries, selectyears, "pasture.production.dm"])
+      productionFAO <- collapseNames(calcOutput("FAOmassbalance",
+                                                aggregate = FALSE)[countries, selectyears, "pasture.production.dm"])
 
       isoMismatch[] <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
 
@@ -416,7 +419,8 @@ calcProduction <- function(products = "kcr",
       stop("Irrigation not yet implemented for this Product group")
     }
     if (!cellular) {
-      productionMAG <- collapseNames(calcOutput("FAOmassbalance_pre", aggregate = FALSE)[, , livestockTypes][, , "production"])
+      productionMAG <- collapseNames(calcOutput("FAOmassbalance_pre",
+                                                aggregate = FALSE)[, , livestockTypes][, , "production"])
     } else {
       productionMAG <- calcOutput("LivestockGridded", aggregate = FALSE)
     }

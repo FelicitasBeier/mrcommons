@@ -66,9 +66,10 @@ calcResDemand <- function(cellular = FALSE, scenario = "dafault") {
   bioenergy <- biomass * (devStatePast * 0 + (1 - devStatePast) * 0.1)
 
   feed <- dimSums(calcOutput("FeedPast",
-    balanceflow = FALSE, cellular = cellular, aggregate = FALSE,
-    nutrients = "dm"
-  )[, , kres], dim = c(3.1, 3.3))
+                             balanceflow = FALSE,
+                             cellular = cellular,
+                             aggregate = FALSE,
+                             nutrients = "dm")[, , kres], dim = c(3.1, 3.3))
 
   if (grepl("freeze*", scenario)) {
     biomass1 <- add_dimension(
