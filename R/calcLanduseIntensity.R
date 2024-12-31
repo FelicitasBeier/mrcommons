@@ -46,7 +46,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
     if (sectoral == "kcr") {
       yieldsLPJmL   <- toolAggregate(yieldsLPJmL, rel = mag2lpj,
-                                     from = "LPJmL5", to = "MAgPIE", dim = 3.1)
+                                     from = "LPJmL5", to = "MAgPIE", dim = 3.2)
     }
 
     cropareaLPJmL   <- calcOutput("Croparea", sectoral = sectoral, physical = TRUE,
@@ -54,7 +54,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
     productionLPJmL <- yieldsLPJmL * cropareaLPJmL
     # Aggregate to countries and across irrigation dimension
-    productionLPJmL <- dimSums(productionLPJmL, dim = c(1.1, 1.2, 3.2))
+    productionLPJmL <- dimSums(productionLPJmL, dim = c(1.1, 1.2, 3.1))
 
     # Load FAO data and caluculate FAO yields on country level
     productionFAO   <- collapseNames(calcOutput("FAOmassbalance",
@@ -110,7 +110,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
                                              climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
                                              stage = "smoothed:cut", aggregate = FALSE,
-                                             years = selectyears)[, , "mgrass.rainfed"])
+                                             years = selectyears)[, , "rainfed.grassland"])
     # yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
     #                                          climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
     #                                          stage = "smoothed:cut", aggregate = FALSE,
