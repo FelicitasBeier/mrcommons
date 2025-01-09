@@ -27,7 +27,7 @@ calcResDemand <- function(cellular = FALSE, scenario = "dafault") {
   devStatePast <- collapseNames(calcOutput("DevelopmentState", aggregate = FALSE)[, past, "SSP2"])
 
   if (cellular) {
-    devStatePast <- toolIso2CellCountries(devStatePast, cells = "lpjcell")
+    devStatePast <- toolIso2CellCountries(devStatePast)
   }
 
   biomass1 <- add_dimension(

@@ -71,14 +71,16 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
     feedBalanceflow2[is.na(feedBalanceflow2)]  <- 0
 
     if (any(round(dimSums(feedBalanceflow2, dim = 3.1) - feedBalanceflow, 5) != 0)) {
-
-      vcat(verbosity = 2, paste(
-        "Difficult to distribute the balanceflow between different livestock",
-        "commodities, because it is not used at all in the feedbaskets.",
-        "Distributed to ruminants for now."))
-      overflow                                <- feedBalanceflow - dimSums(feedBalanceflow2, dim = 3.1)
+      vcat(
+        verbosity = 2,
+        paste(
+          "Difficult to distribute the balanceflow between different livestock",
+          "commodities, because it is not used at all in the feedbaskets.",
+          "Distributed to ruminants for now."
+        )
+      )
+      overflow <- feedBalanceflow - dimSums(feedBalanceflow2, dim = 3.1)
       feedBalanceflow2[, , "alias_livst_rum"] <- feedBalanceflow2[, , "alias_livst_rum"] + overflow
-
     }
 
     feedBalanceflow  <- feedBalanceflow2
@@ -88,7 +90,7 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
       countryToCell <- toolGetMappingCoord2Country()
       countryToCell$coordiso <- paste(countryToCell$coords, countryToCell$iso, sep = ".")
       magFeedCell      <- calcOutput("FeedPast", balanceflow = FALSE,
-                                     cellular = TRUE, cells = "lpjcell",
+                                     cellular = TRUE,
                                      aggregate = FALSE, nutrients = "dm", products = products)
       magFeedCell      <- magFeedCell[, , commonproducts]
       magFeedCountry   <- toolAggregate(magFeedCell, rel = countryToCell,

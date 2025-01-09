@@ -34,20 +34,21 @@ calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
     # http://library.wur.nl/WebQuery/wurpubs/406284.
     # estimate potential evapotranspiration using LPJmL (based on Priestley–Taylor PET model)
 
-    # HACKATHON - This function now returns higher than its "max value".
-    #This could be because LPJmlCliamteInput_new isn't changed?
     pet    <- calcOutput("LPJmLTransform",
                          lpjmlversion = lpjml,
                          climatetype  = climatetype,
                          subtype      = "pnv:pet",
-                         aggregate    = FALSE)[, past, ]
+                         aggregate    = FALSE)[, past, ] / 10 # unit transformation from mm -> m^3/ha
 
+    # HACKATHON: prec is going to change and also need a unit transformation
     prec   <- calcOutput("LPJmLClimateInput_new",
                          lpjmlVersion = "LPJmL4_for_MAgPIE_44ac93de",
                          climatetype  = "GSWP3-W5E5:historical",
                          variable     = "precipitation:monthlySum",
                          stage        = "smoothed",
                          aggregate    = FALSE)[, past, ]
+
+    getItems(prec, dim = 3) <- c(1:12)
 
     ratio <- prec / (pet + 0.001)
 

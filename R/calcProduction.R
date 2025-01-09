@@ -393,7 +393,7 @@ calcProduction <- function(products = "kcr", # nolint
           # distribute corresponding to pasture area share
           productionMAG <- productionMAG * (1 - noPastureYields) +
             noPastureYields * toolAggregate(
-              toolIso2CellCountries(productionFAO, cells = "lpjcell"),
+              toolIso2CellCountries(productionFAO),
               rel = mappingCountryCell,
               weight = areaPasture + 10^
                 (-10),

@@ -4,7 +4,6 @@
 #' @param balanceflow if TRUE, non-eaten food is included in feed baskets, if not it is excluded.
 #' @param products    products in feed baskets that shall be reported
 #' @param cellular    if TRUE value is calculate on cellular level with returned datajust in dry matter
-#' @param cells       Switch between "magpiecell" (59199) and "lpjcell" (67420)
 #' @param nutrients   nutrients like dry matter (DM), reactive nitrogen (Nr), Phosphorus (P),
 #'                    Generalizable Energy (GE) and wet matter (WM).
 #' @return List of magpie objects with results on country or cellular level, unit and description.
@@ -16,7 +15,7 @@
 #' @importFrom magpiesets findset
 #' @importFrom magclass getNames
 
-calcFeedPast <- function(balanceflow = TRUE, cellular = FALSE, cells = "lpjcell",
+calcFeedPast <- function(balanceflow = TRUE, cellular = FALSE,
                          products = "kall", nutrients = "all") {
 
   if (cellular && (length(nutrients) > 1)) {
@@ -39,7 +38,7 @@ calcFeedPast <- function(balanceflow = TRUE, cellular = FALSE, cells = "lpjcell"
   feedBaskets         <- calcOutput("FeedBasketsPast", non_eaten_food = FALSE, aggregate = FALSE)
   feedBaskets         <- feedBaskets[, , products2]
   if (cellular) {
-    feedBaskets <- toolIso2CellCountries(feedBaskets, cells = "lpjcell")
+    feedBaskets <- toolIso2CellCountries(feedBaskets)
   }
 
   feedConsumption  <- animalProduction * feedBaskets
@@ -66,12 +65,6 @@ calcFeedPast <- function(balanceflow = TRUE, cellular = FALSE, cells = "lpjcell"
   unit                <- "Mt DM/Nr/P/K/WM or PJ energy"
   description         <- paste("Feed: dry matter: Mt (dm), gross energy: PJ (ge), reactive nitrogen: Mt (nr),",
                                "phosphor: Mt (p), potash: Mt (k), wet matter: Mt (wm).")
-
-  if (cellular) {
-    if (cells == "magpiecell") {
-      feedConsumption <- toolCoord2Isocell(feedConsumption, cells = cells)
-    }
-  }
 
   return(list(x = feedConsumption,
               weight = NULL,
