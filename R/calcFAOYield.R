@@ -39,7 +39,9 @@ calcFAOYield <- function(physical = TRUE, attributes = "dm", irrigation = FALSE,
 
   faoyears   <- intersect(getYears(production), getYears(area))
 
-  yield      <- collapseNames(production[, faoyears, ]) / area[, faoyears, ]
+  yield      <- ifelse(area[, faoyears, ] > 1e-6,
+                        collapseNames(production[, faoyears, ]) / area[, faoyears, ],
+                       NA)
   yield[yield == Inf | yield == -Inf | is.nan(yield) | yield == 0] <- NA
 
   # If cut!=FALSE, cut yields at 'cut'-percentile and hold constant from there on
