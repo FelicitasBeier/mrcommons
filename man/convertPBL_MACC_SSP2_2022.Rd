@@ -14,11 +14,8 @@ PBL_MACC_SSP2_2022 data as MAgPIE object for all subtypes aggregated to
 country level
 }
 \description{
-Convert subtypes from PBL_MACC_SSP2_2022 to data on ISO country level.#'
-}
-\seealso{
-\code{\link[=readSource]{readSource()}}
+Convert subtypes from PBL_MACC_SSP2_2022 to data on ISO country level.
 }
 \author{
-Michael Windisch, Florian Humpenoeder
+Gabriel Abrahão
 }

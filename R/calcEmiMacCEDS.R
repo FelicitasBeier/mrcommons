@@ -12,11 +12,11 @@
 #' @return REMIND data for baseline emissions for maccs and corresonding
 #' weights (NULL) as a list of two MAgPIE objects
 #' @author Gabriel Abrahao
-#' @seealso [calcOutput()], [readSource()]
+#' @seealso [madrat::calcOutput()], [madrat::readSource()]
 #' @importFrom magclass getNames<- getYears<-
 
 calcEmiMacCEDS <- function(baseyear = 2020) {
-  fullceds <- readSource("CEDS2024")[, baseyear, ]
+  fullceds <- readSource("CEDS2025")[, baseyear, ]
 
   # emissions for the calculation of econometric paramter p1
   co2 <- fullceds[, , "co2_c"] * 1e-3 # MtC to GtC

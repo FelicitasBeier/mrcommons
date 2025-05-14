@@ -3,12 +3,12 @@
 #'
 #' @param cellular If TRUE calculation and output on cellular level
 #' @param products "sum" (default) or "kres"
-#' @param scenario define scenario switch for sensititvy analysis
+#' @param scenario define scenario switch for sensitivity analysis
 #'                 for historical SOC budget
 #'
 #' @return data
 #' @author Benjamin Bodirsky
-#' @seealso [calcOutput()], [readSource()]
+#' @seealso [madrat::calcOutput()], [madrat::readSource()]
 #' @examples
 #' \dontrun{
 #' calcOutput("ResFieldBalancePast")
@@ -112,13 +112,12 @@ calcResFieldBalancePast <- function(cellular = FALSE, products = "sum", scenario
     }
 
     ### generate output
-    out <- mbind(
-      add_dimension(production, dim = 3.1, nm = "biomass"),
-      add_dimension(removal, dim = 3.1, nm = "removal"),
-      add_dimension(burn, dim = 3.1, nm = "burned"),
-      add_dimension(ash, dim = 3.1, nm = "ash"),
-      add_dimension(recycle, dim = 3.1, nm = "recycle")
-    )
+    out <- mbind(add_dimension(production, dim = 3.1, nm = "biomass"),
+                 add_dimension(removal, dim = 3.1, nm = "removal"),
+                 add_dimension(burn, dim = 3.1, nm = "burned"),
+                 add_dimension(ash, dim = 3.1, nm = "ash"),
+                 add_dimension(recycle, dim = 3.1, nm = "recycle"))
+
   } else if (products == "sum") {
     out <- calcOutput("ResFieldBalancePast",
       cellular = cellular, products = "kres",
