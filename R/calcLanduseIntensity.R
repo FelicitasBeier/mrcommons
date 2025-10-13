@@ -21,8 +21,6 @@
 
 calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
-  selectyears <- findset("past")
-
   if (sectoral %in% c("kcr", "lpj")) {
     # Mappings
     cropsMAgPIE  <- findset("kcr")
@@ -35,7 +33,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
     yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
                                              climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
-                                             stage = "smoothed:cut", aggregate = FALSE)[, selectyears, cropsLPJmL])
+                                             stage = "smoothed:cut", aggregate = FALSE)[, , cropsLPJmL])
     # yieldsLPJmL  <- mbind(
     #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
     #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
@@ -52,13 +50,22 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     cropareaLPJmL   <- calcOutput("Croparea", sectoral = sectoral, physical = TRUE,
                                   cellular = TRUE, irrigation = TRUE, aggregate = FALSE)
 
-    productionLPJmL <- yieldsLPJmL * cropareaLPJmL
+    commonYears     <- intersect(getYears(cropareaLPJmL), getYears(yieldsLPJmL))
+    cropareaLPJmL   <- cropareaLPJmL[, commonYears, ]
+    yieldsLPJmL     <- yieldsLPJmL[, commonYears, ]
+
+    productionLPJmL <- yieldsLPJmL[, commonYears, ] * cropareaLPJmL[, commonYears, ]
     # Aggregate to countries and across irrigation dimension
     productionLPJmL <- dimSums(productionLPJmL, dim = c(1.1, 1.2, 3.1))
 
     # Load FAO data and caluculate FAO yields on country level
     productionFAO   <- collapseNames(calcOutput("FAOmassbalance",
                                                 aggregate = FALSE)[, , "production"][, , "dm"][, , cropsMAgPIE])
+
+    commonYears     <- intersect(getYears(productionFAO), getYears(productionLPJmL))
+    productionLPJmL <- productionLPJmL[, commonYears, ]
+    productionFAO   <- productionFAO[, commonYears, ]
+    cropareaLPJmL   <- cropareaLPJmL[, commonYears, ]
 
     if (sectoral == "lpj") {
       productionFAO <- toolAggregate(productionFAO, rel = mag2lpj,
@@ -116,16 +123,27 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     #                                          stage = "smoothed:cut", aggregate = FALSE,
     #                                          years = selectyears)[, , "mgrass.rainfed"])
 
-    pastareaMAgPIE        <- calcOutput("LanduseInitialisation", cellular = TRUE, aggregate = FALSE)[, , "past"]
+    
+    pastareaMAgPIE        <- calcOutput("LanduseInitialisation", cellular = TRUE, cells = "lpjcell",
+                                        selectyears = seq(1965, 2015, 5), aggregate = FALSE)[, , "past"]
     getNames(yieldsLPJmL) <- getNames(pastareaMAgPIE) <- "pasture"
 
-    productionLPJmL  <- yieldsLPJmL * pastareaMAgPIE
+    commonYears           <- intersect(getYears(pastareaMAgPIE), getYears(yieldsLPJmL))
+    pastareaMAgPIE        <- pastareaMAgPIE[, commonYears, ]
+    yieldsLPJmL           <- yieldsLPJmL[, commonYears, ]
+
+    productionLPJmL  <- yieldsLPJmL[, commonYears, ] * pastareaMAgPIE[, commonYears, ]
     # Aggregate to country values
     productionLPJmL  <- dimSums(productionLPJmL, dim = c("x", "y"))
 
     # Load FAO data and caluculate FAO yields on country level
     productionFAO    <- collapseNames(calcOutput("FAOmassbalance",
                                                  aggregate = FALSE)[, , "production"][, , "dm"][, , "pasture"])
+
+    commonYears     <- intersect(getYears(productionFAO), getYears(productionLPJmL))
+    productionLPJmL <- productionLPJmL[, commonYears, ]
+    productionFAO   <- productionFAO[, commonYears, ]
+    pastareaMAgPIE  <- pastareaMAgPIE[, commonYears, ]
 
     # Getting overlapping countries
     regions          <- intersect(getItems(productionLPJmL, dim = 1.1),

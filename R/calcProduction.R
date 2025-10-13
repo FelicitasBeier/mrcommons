@@ -25,15 +25,15 @@ calcProduction <- function(products = "kcr", # nolint
                            calibrated = TRUE,
                            attributes = "all",
                            irrigation = FALSE) {
-  selectyears <- findset("past")
 
   mappingCountryCell <- toolGetMappingCoord2Country()
   mappingCountryCell$coordiso <- paste(mappingCountryCell$coords, mappingCountryCell$iso, sep = ".")
 
   if (products == "kcr") {
-    magCropTypes <- findset("kcr")
-    missing <- c("betr", "begr")
-    magCropTypes <- setdiff(magCropTypes, missing)
+
+    magCropTypes  <- findset("kcr")
+    missing       <- c("betr", "begr")
+    magCropTypes  <- setdiff(magCropTypes, missing)
 
     if (!cellular) {
       if (irrigation) {
@@ -43,6 +43,7 @@ calcProduction <- function(products = "kcr", # nolint
                                                 aggregate = FALSE)[, , "production"][, , magCropTypes])
       productionMAG <- add_columns(productionMAG, addnm = missing, dim = 3.1)
       productionMAG[, , missing] <- 0
+
     } else {
       ################################
       ### crop production cellular ###
@@ -77,38 +78,24 @@ calcProduction <- function(products = "kcr", # nolint
       #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
       #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, "irrigated"])
 
-      yieldsMAG <- toolAggregate(
-        x = yieldsLPJ,
-        rel = mappingMAG2LPJ,
-        from = "LPJmL5",
-        to = "MAgPIE",
-        dim = 3.2,
-        partrel = TRUE
-      )[, , magCropTypes]
+      yieldsMAG <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ,
+                                 from = "LPJmL5", to = "MAgPIE", dim = 3.2,
+                                 partrel = TRUE)[, , magCropTypes]
 
-      cropareaMAG <- calcOutput(
-        "Croparea",
-        sectoral = "kcr",
-        physical = TRUE,
-        cellular = TRUE,
-        irrigation = TRUE,
-        aggregate = FALSE
-      )[, selectyears, magCropTypes]
+      cropareaMAG <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE,
+                                cellular = TRUE, irrigation = TRUE, aggregate = FALSE)[, , magCropTypes]
+
+      commonYears <- intersect(getYears(yieldsLPJ), getYears(cropareaMAG))
+      cropareaMAG <- cropareaMAG[, commonYears, ]
+      yieldsLPJ   <- yieldsLPJ[, commonYears, ]
+      yieldsMAG   <- yieldsMAG[, commonYears, ]
 
       if (calibrated) {
-        tau <- calcOutput(
-          "LanduseIntensity",
-          sectoral = "kcr",
-          rescale = FALSE,
-          aggregate = FALSE
-        )[, selectyears, magCropTypes]
-        tauCell <- toolAggregate(
-          x = tau,
-          rel = mappingCountryCell,
-          from = "iso",
-          to = "coordiso",
-          partrel = TRUE
-        )
+
+        tau       <- calcOutput("LanduseIntensity", sectoral = "kcr", rescale = FALSE,
+                                aggregate = FALSE)[, , magCropTypes]
+        tauCell   <- toolAggregate(x = tau, rel = mappingCountryCell,
+                                   from = "iso", to = "coordiso", partrel = TRUE)
         getSets(tauCell) <- c("x", "y", "iso", "year", "ItemCodeItem")
 
         yieldsMAG <- tauCell * yieldsMAG
@@ -119,57 +106,49 @@ calcProduction <- function(products = "kcr", # nolint
       #####################################################################
       # correct production mismatch - generic approach
 
-      isoproductionMAG <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
-      countries <- getItems(isoproductionMAG, dim = 1)
-      prods <- getNames(productionMAG, dim = 1)
-      productionFAO <- calcOutput("FAOmassbalance",
-                                  aggregate = FALSE)[, selectyears, "production.dm"][countries, , prods]
-      productionFAO <- collapseNames(productionFAO)
+      isoproductionMAG  <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
+      countries         <- getItems(isoproductionMAG, dim = 1)
+      prods             <- getNames(productionMAG, dim = 1)
+      productionFAO     <- calcOutput("FAOmassbalance",
+                                      aggregate = FALSE)[, , "production.dm"][countries, , prods]
+      productionFAO     <- collapseNames(productionFAO)
       isoMismatch[, , ] <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
 
       if (any(isoMismatch != 0)) {
         # correct items with no crop-specific area
-        isoMAGCroparea <- noMAGCroparea <- dimSums(cropareaMAG, dim = c("x", "y"))
-        noMAGCroparea[] <- (isoMAGCroparea == 0) * isoMismatch
+        isoMAGCroparea   <- noMAGCroparea <- dimSums(cropareaMAG, dim = c("x", "y"))
+        noMAGCroparea[]  <- (isoMAGCroparea == 0) * isoMismatch
 
         if (any(noMAGCroparea != 0)) {
           # distribute total cropland weighted over all non-irrigated cells first
           productionMAG[, , "rainfed"] <- productionMAG[, , "rainfed"] * (1 - noMAGCroparea[, , "rainfed"]) +
-            toolAggregate(
-              noMAGCroparea[, , "rainfed"] * (productionFAO - isoproductionMAG),
-              rel = mappingCountryCell,
-              weight = dimSums(cropareaMAG[, , "rainfed"], dim = 3) + 10^
-                (-10),
-              from = "iso",
-              to = "coordiso"
-            )
+            toolAggregate(noMAGCroparea[, , "rainfed"] * (productionFAO - isoproductionMAG),
+                          rel = mappingCountryCell,
+                          weight = dimSums(cropareaMAG[, , "rainfed"], dim = 3) + 10^(-10),
+                          from = "iso", to = "coordiso")
 
-          isoproductionMAG <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
+          isoproductionMAG  <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
 
           # distribute total cropland weighted over irrigated cells
           productionMAG[, , "irrigated"] <- productionMAG[, , "irrigated"] * (1 - noMAGCroparea[, , "irrigated"]) +
-            toolAggregate(
-              noMAGCroparea[, , "irrigated"] * (productionFAO - isoproductionMAG),
-              rel = mappingCountryCell,
-              weight = dimSums(cropareaMAG[, , "irrigated"], dim = 3) + 10^
-                (-10),
-              from = "iso",
-              to = "coordiso"
-            )
+            toolAggregate(noMAGCroparea[, , "irrigated"] * (productionFAO - isoproductionMAG),
+                          rel = mappingCountryCell,
+                          weight = dimSums(cropareaMAG[, , "irrigated"], dim = 3) + 10^(-10),
+                          from = "iso", to = "coordiso")
         }
 
         # correct items with no total cropland area for known data mismatches:
         # where no LUH croparea at all, but FAO production reported
         # Note: Number of countries with mismatch would reduce if we use the croparea of LandInG
-        isoMAGTotCrop <- dimSums(isoMAGCroparea, dim = 3)
-        noMAGTotCrop <- (isoMAGTotCrop == 0) * isoMismatch
+        isoMAGTotCrop  <- dimSums(isoMAGCroparea, dim = 3)
+        noMAGTotCrop   <- (isoMAGTotCrop == 0) * isoMismatch
 
         if (any(noMAGTotCrop["MUS", , ] != 0)) {
           productionMAG["MUS", , "rainfed"] <- productionFAO["MUS", , ] /
             length(getItems(productionMAG["MUS", , ], dim = 1))
         }
         if (any(noMAGTotCrop["KIR", , ] != 0)) {
-          productionMAG["KIR", , "rainfed"] <- productionFAO["KIR", , ] /
+          productionMAG["KIR", , "rainfed"]  <- productionFAO["KIR", , ] /
             length(getItems(productionMAG["KIR", , ], dim = 1))
         }
         if (any(noMAGTotCrop["PYF", , ] != 0)) {
@@ -226,61 +205,43 @@ calcProduction <- function(products = "kcr", # nolint
         }
 
         # correct items with no yields
-        isoMAGYields <- noMAGYields <- toolAggregate(
-          yieldsMAG,
-          weight = cropareaMAG + 10^
-            (-10),
-          rel = mappingCountryCell,
-          from = "coordiso",
-          to = "iso"
-        )
-        noMAGYields[] <- (isoMAGYields == 0) * isoMismatch * (1 - noMAGCroparea)
+        isoMAGYields   <- noMAGYields <- toolAggregate(yieldsMAG, weight = cropareaMAG + 10^(-10),
+                                                       rel = mappingCountryCell,
+                                                       from = "coordiso", to = "iso")
+        noMAGYields[]  <- (isoMAGYields == 0) * isoMismatch * (1 - noMAGCroparea)
 
         if (any(noMAGYields != 0)) {
-          isoproductionMAG <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
+
+          isoproductionMAG  <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
 
           # distribute corresponding to crop area share
-          productionMAG[, , "rainfed"] <- productionMAG[, , "rainfed"] * (1 - noMAGYields[, , "rainfed"]) +
-            noMAGYields[, , "rainfed"] * toolAggregate(
-              productionFAO - isoproductionMAG,
-              rel = mappingCountryCell,
-              weight = cropareaMAG[, , "rainfed"] + 10^
-                (-10),
-              from = "iso",
-              to = "coordiso"
-            )
+          productionMAG[, , "rainfed"]   <- productionMAG[, , "rainfed"] * (1 - noMAGYields[, , "rainfed"]) +
+            noMAGYields[, , "rainfed"] * toolAggregate(productionFAO - isoproductionMAG,
+                                                       rel = mappingCountryCell,
+                                                       weight = cropareaMAG[, , "rainfed"] + 10^(-10),
+                                                       from = "iso", to = "coordiso")
 
-          isoproductionMAG <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
+          isoproductionMAG  <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
 
           # distribute corresponding to crop area share
-          productionMAG[, , "irrigated"] <- productionMAG[, , "irrigated"] * (1 - noMAGYields[, , "irrigated"]) +
-            noMAGYields[, , "irrigated"] * toolAggregate(
-              productionFAO - isoproductionMAG,
-              rel = mappingCountryCell,
-              weight = cropareaMAG[, , "irrigated"] + 10^
-                (-10),
-              from = "iso",
-              to = "coordiso"
-            )
+          productionMAG[, , "irrigated"]   <- productionMAG[, , "irrigated"] * (1 - noMAGYields[, , "irrigated"]) +
+            noMAGYields[, , "irrigated"] * toolAggregate(productionFAO - isoproductionMAG,
+                                                         rel = mappingCountryCell,
+                                                         weight = cropareaMAG[, , "irrigated"] + 10^(-10),
+                                                         from = "iso", to = "coordiso")
         }
       }
 
-      isoproductionMAG <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
-      isoMismatch[] <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
+      isoproductionMAG  <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2, 3.2))
+      isoMismatch[]     <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
 
       if (any(isoMismatch != 0)) {
-        warning(
-          paste0(
-            "Cellular data to FAO production mismatch ",
-            "after generic fix in calcProduction. Please check!"
-          )
-        )
+        warning(paste0("Cellular data to FAO production mismatch ",
+                       "after generic fix in calcProduction. Please check!"))
       }
 
       #####################################################################
-      if (!irrigation) {
-        productionMAG <- dimSums(productionMAG, dim = 3.2)
-      }
+      if (!irrigation) productionMAG  <- dimSums(productionMAG, dim = 3.2)
 
       prodAttributes <- calcOutput("Attributes", aggregate = FALSE)[, , magCropTypes]
 
@@ -288,28 +249,29 @@ calcProduction <- function(products = "kcr", # nolint
         prodAttributes <- prodAttributes[, , attributes]
       }
 
-      productionMAG <- productionMAG * prodAttributes
-      productionMAG <- add_columns(productionMAG, addnm = missing, dim = 3.1)
+      productionMAG  <- productionMAG * prodAttributes
+      productionMAG  <- add_columns(productionMAG, addnm = missing, dim = 3.1)
       productionMAG[, , missing] <- 0
     }
+
   } else if (products == "pasture") {
     if (irrigation) {
       stop("Irrigation not yet implemented for this Product group")
     }
     if (!cellular) {
-      productionMAG <- collapseNames(calcOutput("FAOmassbalance", aggregate = FALSE)[, , "pasture.production"])
+
+      productionMAG  <- collapseNames(calcOutput("FAOmassbalance", aggregate = FALSE)[, , "pasture.production"])
+
     } else {
       ####################################
       ### pasture production celluluar ###
       ####################################
 
-      areaPasture <- collapseNames(calcOutput(
-        "LanduseInitialisation",
-        cellular = TRUE,
-        aggregate = FALSE
-      )[, selectyears, "past"])
+      areaPasture    <- collapseNames(calcOutput("LanduseInitialisation",
+                                                 cellular = TRUE,
+                                                 aggregate = FALSE)[, commonYears, "past"])
+      
       cfgLPJmL <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-
       yieldsPasture <- collapseNames(
         calcOutput(
           "LPJmLTransform",
@@ -318,9 +280,7 @@ calcProduction <- function(products = "kcr", # nolint
           subtype = "crops:pft_harvestc",
           stage = "smoothed:cut",
           aggregate = FALSE,
-          years = selectyears
-        )[, , "rainfed.grassland"]
-      )
+          years = commonYears)[, , "rainfed.grassland"])
 
       # yieldsPasture <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
       #                                           climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
@@ -332,88 +292,73 @@ calcProduction <- function(products = "kcr", # nolint
       #                                           years = selectyears)[, , "mgrass.rainfed"])
 
       if (calibrated) {
-        tau <- calcOutput(
-          "LanduseIntensity",
-          sectoral = "pasture",
-          rescale = FALSE,
-          aggregate = FALSE
-        )[, selectyears, ]
-        tauCell <- toolAggregate(
-          x = tau,
-          rel = mappingCountryCell,
-          from = "iso",
-          to = "coordiso",
-          partrel = TRUE
-        )
+
+        tau           <- calcOutput("LanduseIntensity", sectoral = "pasture", rescale = FALSE,
+                                    aggregate = FALSE)
+        tauCell       <- toolAggregate(x = tau, rel = mappingCountryCell,
+                                       from = "iso", to = "coordiso", partrel = TRUE)
 
         yieldsPasture <- tauCell * yieldsPasture
       }
 
-      productionMAG <- yieldsPasture * areaPasture
+      productionMAG    <- yieldsPasture * areaPasture
 
       #####################################################################
       # correct production mismatch - generic approach
 
-      isoproductionMAG <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2))
-      countries <- getItems(isoproductionMAG, dim = 1)
-      productionFAO <- collapseNames(calcOutput("FAOmassbalance",
-                                                aggregate = FALSE)[countries, selectyears, "pasture.production.dm"])
+      isoproductionMAG  <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2))
+      countries         <- getItems(isoproductionMAG, dim = 1)
+      productionFAO     <- collapseNames(calcOutput("FAOmassbalance",
+                                                    aggregate = FALSE)[countries, , "pasture.production.dm"])
 
-      isoMismatch[] <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
+      commonYears   <- intersect(getYears(productionFAO), getYears(isoproductionMAG))
+      areaPasture   <- areaPasture[, commonYears, ]
+      productionMAG <- productionMAG[, commonYears, ]
+      isoproductionMAG <- isoproductionMAG[, commonYears, ]
+      productionFAO    <- productionFAO[, commonYears, ]
+      yieldsPasture    <- yieldsPasture[, commonYears, ]
+
+      isoMismatch[]     <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
 
       if (any(isoMismatch != 0)) {
         # correct items with no area
-        isoPastureArea <- noPastureArea <- dimSums(areaPasture, dim = c("x", "y"))
-        noPastureArea[] <- (isoPastureArea == 0) * isoMismatch
+        isoPastureArea   <- noPastureArea <- dimSums(areaPasture, dim = c("x", "y"))
+        noPastureArea[]  <- (isoPastureArea == 0) * isoMismatch
 
         if (any(noPastureArea != 0)) {
           # distribute equally over all cells
-          productionMAG <- productionMAG * (1 - noPastureArea) +
-            magpie_expand(
-              noPastureArea * productionFAO,
-              productionMAG
-            ) /
-              new.magpie(names(getCPR(productionMAG, dim = 1.3)),
-                fill = getCPR(productionMAG, dim = 1.3)
-              )
+          productionMAG     <- productionMAG * (1 - noPastureArea) +
+            magpie_expand(noPastureArea * productionFAO, productionMAG) /
+              new.magpie(names(getCPR(productionMAG, dim = 1.3)), fill = getCPR(productionMAG, dim = 1.3))
         }
 
         # correct items with no yields
-        isoPastureYields <- noPastureYields <- toolAggregate(
-          yieldsPasture,
-          weight = areaPasture + 10^
-            (-10),
-          rel = mappingCountryCell,
-          from = "coordiso",
-          to = "iso"
-        )
-        noPastureYields[] <- (isoPastureYields == 0) * isoMismatch * (1 - noPastureArea)
+        isoPastureYields   <- noPastureYields <- toolAggregate(yieldsPasture, weight = areaPasture + 10^(-10),
+                                                               rel = mappingCountryCell, from = "coordiso", to = "iso")
+        noPastureYields[]  <- (isoPastureYields == 0) * isoMismatch * (1 - noPastureArea)
 
         if (any(noPastureYields != 0)) {
           # distribute corresponding to pasture area share
           productionMAG <- productionMAG * (1 - noPastureYields) +
-            noPastureYields * toolAggregate(
-              toolIso2CellCountries(productionFAO),
-              rel = mappingCountryCell,
-              weight = areaPasture + 10^
-                (-10),
-              from = "iso",
-              to = "coordiso"
-            )
+            noPastureYields * toolAggregate(toolIso2CellCountries(productionFAO),
+                                            rel = mappingCountryCell,
+                                            weight = areaPasture + 10^(-10),
+                                            from = "iso", to = "coordiso")
         }
       }
 
-      isoproductionMAG <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2))
-      isoMismatch[] <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
+      isoproductionMAG  <- isoMismatch <- dimSums(productionMAG, dim = c(1.1, 1.2))
+      isoMismatch[]     <- abs(round(isoproductionMAG - productionFAO, 4)) > 0
 
-      if (any(isoMismatch != 0)) {
-        warning("Cellular data to FAO production mismatch after generic fix. Please check.")
-      }
+      if (any(isoMismatch != 0)) warning("Cellular data to FAO production mismatch after generic fix. Please check.")
 
       prodAttributes <- calcOutput("Attributes", aggregate = FALSE)[, , "pasture"]
-      productionMAG <- collapseNames(productionMAG * prodAttributes)
+      productionMAG  <- collapseNames(productionMAG * prodAttributes)
+
     }
+
   } else if (products == "kli") {
+
     livestockTypes <- findset("kli")
     if (irrigation) {
       stop("Irrigation not yet implemented for this Product group")
@@ -424,6 +369,7 @@ calcProduction <- function(products = "kcr", # nolint
     } else {
       productionMAG <- calcOutput("LivestockGridded", aggregate = FALSE)
     }
+
   } else {
     stop("Products so far can only be kcr,kli,or pasture")
   }
@@ -445,17 +391,13 @@ calcProduction <- function(products = "kcr", # nolint
   # Set negatives due to rounding imprecision to 0
   x[x < 0] <- 0
 
-  return(
-    list(
-      x = x,
-      weight = NULL,
-      unit = "Mt DM/Nr/P/K/WM or PJ energy",
-      description = "Crop, pasture and livestock production:
+  return(list(x = x,
+              weight = NULL,
+              unit = "Mt DM/Nr/P/K/WM or PJ energy",
+              description = "Crop, pasture and livestock production:
               dry matter: Mt (dm), gross energy: PJ (ge), reactive nitrogen: Mt (nr),
               phosphor: Mt (p), potash: Mt (k), wet matter: Mt (wm).",
-      min = -Inf,
-      max = Inf,
-      isocountries = !cellular
-    )
-  )
+              min = -Inf,
+              max = Inf,
+              isocountries = !cellular))
 }

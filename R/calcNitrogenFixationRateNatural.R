@@ -1,6 +1,7 @@
 #' @title calcNitrogenFixationRateNatural
 #' @description calculates fixation rates from natural ecosystems based on evapostranspiration
-#' @return List of magpie objects with results on global level, empty weight, unit and description
+#' @param cells "magpiecell" for 59199 cells or "lpjcell" for 67420 cells
+#' @return List of magpie objects with results on global level, empty weight, unit and description.
 #' @author Benjamin Leon Bodirsky
 #' @seealso
 #' [calcNitrogenFixationPast()]
@@ -14,17 +15,21 @@
 #' @importFrom magclass collapseNames dimSums setYears
 #' @importFrom magpiesets findset
 
-calcNitrogenFixationRateNatural <- function() {
+calcNitrogenFixationRateNatural <- function(cells = "lpjcell") {
 
-  past <- findset("past")
-
+  years <- findset("past_til2020")
+  years <- as.integer(gsub("y", "", years))
   # evapotranspiration (in m^3 per ha)
   # as this currently uses only historical data, the lpjmlversion and climatetype is hard-coded
   etRate <- calcOutput("LPJmLTransform",
                        lpjmlversion = "lpjml5.9.5-m1",
                        climatetype  = "MRI-ESM2-0:ssp370",
                        subtype      = "pnv:transp",
-                       aggregate    = FALSE)[, past, ]
+                       aggregate    = FALSE)[, years, ]
+
+  cyears <- intersect(getYears(etRate, as.integer = TRUE), years)
+  etRate <- etRate[, cyears, ]
+  startYear <- "y1965"
 
   # HACKATHON - We need to figure out the yearly vs. monthly datasets
   etRate <- dimSums(etRate, dim = 3.1)
@@ -34,7 +39,6 @@ calcNitrogenFixationRateNatural <- function() {
 
   # calibration to global total of 58 Tg from Vitousek et al 2013,
   # assuming linear relation to evapotranspiration from Cleveland et al 1999
-  startYear <- "y1965"
   bnf <- 58 / dimSums(setYears(et[, startYear, ], NULL), dim = c(1, 3)) * et
   getSets(bnf) <- c("x", "y", "iso", "year", "data")
   bnfRate                 <- bnf / landArea
@@ -42,6 +46,7 @@ calcNitrogenFixationRateNatural <- function() {
 
   # in case we also have ET for pasture, we could also first calibrate with natveg and
   # then apply to ET rates of pastures. however pasture productivity very uncertain
+
 
   return(list(x = bnfRate,
               weight = dimSums(landArea, dim = 3) + 10^-10,

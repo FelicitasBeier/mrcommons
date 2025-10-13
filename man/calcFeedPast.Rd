@@ -12,9 +12,9 @@ calcFeedPast(
 )
 }
 \arguments{
-\item{balanceflow}{if TRUE, non-eaten food is included in feed baskets, if not it is excluded.}
+\item{balanceflow}{if TRUE, a feed balance flow is included in total feed demand, if not it is excluded.}
 
-\item{cellular}{if TRUE value is calculate on cellular level with returned datajust in dry matter}
+\item{cellular}{if TRUE value is calculated on cellular level with returned data just in dry matter}
 
 \item{products}{products in feed baskets that shall be reported}
 
@@ -33,5 +33,5 @@ calcOutput("FeedPast")
 }
 }
 \author{
-Isabelle Weindl, Benjamin Leon Bodirsky, Kristine Karstems
+Isabelle Weindl, Benjamin Leon Bodirsky, Kristine Karstens
 }
