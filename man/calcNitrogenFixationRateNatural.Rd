@@ -4,10 +4,13 @@
 \alias{calcNitrogenFixationRateNatural}
 \title{calcNitrogenFixationRateNatural}
 \usage{
-calcNitrogenFixationRateNatural()
+calcNitrogenFixationRateNatural(cells = "lpjcell")
+}
+\arguments{
+\item{cells}{"magpiecell" for 59199 cells or "lpjcell" for 67420 cells}
 }
 \value{
-List of magpie objects with results on global level, empty weight, unit and description
+List of magpie objects with results on global level, empty weight, unit and description.
 }
 \description{
 calculates fixation rates from natural ecosystems based on evapostranspiration

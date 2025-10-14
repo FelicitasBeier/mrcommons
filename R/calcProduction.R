@@ -67,16 +67,16 @@ calcProduction <- function(products = "kcr", # nolint
           subtype = "crops:pft_harvestc",
           stage = "smoothed:cut",
           aggregate = FALSE
-        )[, selectyears, cropsLPJmL]
+        )[, , cropsLPJmL]
       )
 
       # yieldsLPJ  <- mbind(
       #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
       #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
-      #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, "rainfed"],
+      #              stage = "smoothed:cut", aggregate = FALSE)[, , "rainfed"],
       #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
       #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
-      #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, "irrigated"])
+      #              stage = "smoothed:cut", aggregate = FALSE)[, , "irrigated"])
 
       yieldsMAG <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ,
                                  from = "LPJmL5", to = "MAgPIE", dim = 3.2,
@@ -270,7 +270,7 @@ calcProduction <- function(products = "kcr", # nolint
       areaPasture    <- collapseNames(calcOutput("LanduseInitialisation",
                                                  cellular = TRUE,
                                                  aggregate = FALSE)[, commonYears, "past"])
-      
+
       cfgLPJmL <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
       yieldsPasture <- collapseNames(
         calcOutput(

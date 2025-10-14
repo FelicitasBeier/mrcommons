@@ -3,7 +3,6 @@
 #'
 #' @param per_livestock_unit default false
 #' @param cellular   if TRUE value is calculated on cellular level
-#' @param cells      Switch between "magpiecell" (59199) and "lpjcell" (67420)
 #' @param products products in feed baskets that shall be reported
 #' @param future if FALSE, only past years will be reported (reduces memory)
 #' @return List of magpie objects with results on country or cellular level, unit and description.
@@ -15,7 +14,6 @@
 #' }
 calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
                                 cellular = FALSE,
-                                cells = "lpjcell",
                                 products = "kall",
                                 future = "constant") {
 
@@ -31,7 +29,7 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
     faoFeed          <- collapseNames(faoFeednutrients[, , "dm"])
     faoFeed          <- add_columns(faoFeed, addnm = "pasture", dim = 3.1)
 
-    magFeednutrients <- calcOutput("FeedPast", balanceflow = FALSE, cellular = FALSE, cells = "lpjcell",
+    magFeednutrients <- calcOutput("FeedPast", balanceflow = FALSE, cellular = FALSE,
                                    aggregate = FALSE, nutrients = "all", products = products)
     magFeed          <- magFeednutrients[, , "dm"]
 
@@ -125,7 +123,7 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
     kli  <- findset("kli")
     past <- findset("past_til2020")
 
-    feedBalanceflow <- calcOutput("FeedBalanceflow", cellular = cellular, cells = "lpjcell",
+    feedBalanceflow <- calcOutput("FeedBalanceflow", cellular = cellular,
                                   products = products, future = future, aggregate = FALSE)
     livestockProduction <- collapseNames(calcOutput("Production", products = "kli",
                                                     cellular = cellular,
@@ -147,15 +145,6 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
   } else {
     stop("per_livestock_unit has to be boolean")
   }
-
-  if (cellular) {
-    if (cells == "magpiecell") {
-      feedBalanceflow <- toolCoord2Isocell(feedBalanceflow, cells = cells)
-      vcat(verbosity = 1, "magpiecell deprecated, please use lpjcell")
-
-    }
-  }
-
 
   return(list(x = feedBalanceflow,
               weight = weight,

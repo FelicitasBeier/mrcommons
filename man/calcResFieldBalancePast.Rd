@@ -15,7 +15,7 @@ calcResFieldBalancePast(
 
 \item{products}{"sum" (default) or "kres"}
 
-\item{scenario}{define scenario switch for sensititvy analysis
+\item{scenario}{define scenario switch for sensitivity analysis
 for historical SOC budget}
 }
 \value{
