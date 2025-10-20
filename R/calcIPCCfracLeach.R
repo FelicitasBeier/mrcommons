@@ -49,6 +49,7 @@ calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
                                   variable = "precipitation:monthlySum",
                                   stage = "smoothed",
                                   aggregate = FALSE)
+    dimnames(precipitation)[[3]] <- as.character(seq(1, 12))
     precipitation <- precipitation[, cyears, ]
 
     ratio <- precipitation / (pet + 0.001)
