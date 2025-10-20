@@ -50,14 +50,15 @@ calcProduction <- function(products = "kcr", # nolint
       ################################
 
       # crop mapping from LPJmL to MAgPIE categories
-      mappingMAG2LPJ <- toolGetMapping(
-        name = "MAgPIE_LPJmL.csv",
-        type = "sectoral",
-        where = "mrlandcore"
-      )
+      mappingMAG2LPJ <- toolGetMapping(name = "MAgPIE_LPJmL.csv",
+                                       type = "sectoral",
+                                       where = "mrlandcore")
       mappingMAG2LPJ <- mappingMAG2LPJ[mappingMAG2LPJ$MAgPIE %in% magCropTypes, ]
-      cropsLPJmL <- levels(droplevels(factor(mappingMAG2LPJ$LPJmL5)))
+      cropsLPJmL     <- levels(droplevels(factor(mappingMAG2LPJ$LPJmL5)))
 
+      # HACKATHON: Why don't we use (a) calcLPJmLHarmonize here
+      # or (b) even calcYieldsLPJmL
+      # Or why would we only want to have "smoothed data here"?
       cfgLPJmL <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
       yieldsLPJ <- collapseNames(
         calcOutput(
@@ -70,6 +71,10 @@ calcProduction <- function(products = "kcr", # nolint
         )[, , cropsLPJmL]
       )
 
+      # Note: toolLPJmLDefault also needs to be updated every time there is an LPJmL data update...
+
+      # HACKATHON: This can be removed. The separate reading in of yiels from cropsIR and cropsRF runs
+      # is handled in calcYieldsLPJmL. I guess it's better to call calcYieldsLPJmL here.
       # yieldsLPJ  <- mbind(
       #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
       #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
@@ -78,12 +83,22 @@ calcProduction <- function(products = "kcr", # nolint
       #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
       #              stage = "smoothed:cut", aggregate = FALSE)[, , "irrigated"])
 
+      cropareaMAG <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE,
+                                cellular = TRUE, irrigation = TRUE, aggregate = FALSE)[, , magCropTypes]
+
+      # HACKATHON: Here is my suggestion... Question: Is it ok to use $baselineGcm
+      # Not allowed because of dependencies (calcYieldsLPJmL is in mrland)
+      # If we want to use this here --> move calcYiels (and multiple cropping functions) to mrlandcore
+      # yieldsLPJ <- calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
+      #                         climatetype = cfgLPJmL$baselineGcm,
+      #                         selectyears = getYears(cropareaMAG),
+      #                         aggregate = FALSE)[, , cropsLPJmL]
+      # Note: did not set multiple cropping argument (default: multicropping = FALSE)
+      # Note: toolLPJmLDefault also needs to be updated every time there is an LPJmL data update...
+
       yieldsMAG <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ,
                                  from = "LPJmL5", to = "MAgPIE", dim = 3.2,
                                  partrel = TRUE)[, , magCropTypes]
-
-      cropareaMAG <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE,
-                                cellular = TRUE, irrigation = TRUE, aggregate = FALSE)[, , magCropTypes]
 
       commonYears <- intersect(getYears(yieldsLPJ), getYears(cropareaMAG))
       cropareaMAG <- cropareaMAG[, commonYears, ]
