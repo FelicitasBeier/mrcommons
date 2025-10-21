@@ -56,45 +56,29 @@ calcProduction <- function(products = "kcr", # nolint
       mappingMAG2LPJ <- mappingMAG2LPJ[mappingMAG2LPJ$MAgPIE %in% magCropTypes, ]
       cropsLPJmL     <- levels(droplevels(factor(mappingMAG2LPJ$LPJmL5)))
 
-      # HACKATHON: Why don't we use (a) calcLPJmLHarmonize here
-      # or (b) even calcYieldsLPJmL
-      # Or why would we only want to have "smoothed data here"?
-      cfgLPJmL <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-      yieldsLPJ <- collapseNames(
-        calcOutput(
-          "LPJmLTransform",
-          lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-          climatetype = cfgLPJmL$baselineHist,
-          subtype = "crops:pft_harvestc",
-          stage = "smoothed:cut",
-          aggregate = FALSE
-        )[, , cropsLPJmL]
-      )
-
-      # Note: toolLPJmLDefault also needs to be updated every time there is an LPJmL data update...
-
-      # HACKATHON: This can be removed. The separate reading in of yiels from cropsIR and cropsRF runs
-      # is handled in calcYieldsLPJmL. I guess it's better to call calcYieldsLPJmL here.
-      # yieldsLPJ  <- mbind(
-      #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-      #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
-      #              stage = "smoothed:cut", aggregate = FALSE)[, , "rainfed"],
-      #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-      #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
-      #              stage = "smoothed:cut", aggregate = FALSE)[, , "irrigated"])
-
       cropareaMAG <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE,
                                 cellular = TRUE, irrigation = TRUE, aggregate = FALSE)[, , magCropTypes]
 
-      # HACKATHON: Here is my suggestion... Question: Is it ok to use $baselineGcm
-      # Not allowed because of dependencies (calcYieldsLPJmL is in mrland)
-      # If we want to use this here --> move calcYiels (and multiple cropping functions) to mrlandcore
-      # yieldsLPJ <- calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
-      #                         climatetype = cfgLPJmL$baselineGcm,
-      #                         selectyears = getYears(cropareaMAG),
-      #                         aggregate = FALSE)[, , cropsLPJmL]
-      # Note: did not set multiple cropping argument (default: multicropping = FALSE)
-      # Note: toolLPJmLDefault also needs to be updated every time there is an LPJmL data update...
+      # HACKATHON: in calcYieldsLPJmL selectyears is implemented (for memory reasons)
+      # But it's not so nice to hard-code it here, so I used getYears from cropareaMAG
+      # This gives a warning: Are we fine for that for now?
+      # Otherwise we can implement NULL for selectyears
+      # in which case all years of calcLPJmLHarmonize/calcLPJmLTransform should be read in
+      # which in the case of historical should not be too many and therefore be fine?
+      cfgLPJmL  <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+      yieldsLPJ <- collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
+                                            climatetype = cfgLPJmL$baselineHist,
+                                            selectyears = getItems(cropareaMAG, dim = 2),
+                                            aggregate = FALSE)[, , cropsLPJmL])
+      # HACKATHON Note: I did not set multiple cropping argument (default: multicropping = FALSE)
+      # It then just goes to the default, so once we activate multiple cropping it would
+      # be multiple cropping yields (where it currently happens), which I guess is what
+      # we would want, right?
+
+      # extend to needed years
+      past      <- findset("past_til2020")
+      yieldsLPJ <- toolHoldConstant(yieldsLPJ, years = past)
+
 
       yieldsMAG <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ,
                                  from = "LPJmL5", to = "MAgPIE", dim = 3.2,
@@ -286,25 +270,26 @@ calcProduction <- function(products = "kcr", # nolint
                                                  cellular = TRUE,
                                                  aggregate = FALSE)[, commonYears, "past"])
 
-      cfgLPJmL <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-      yieldsPasture <- collapseNames(
-        calcOutput(
-          "LPJmLTransform",
-          lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-          climatetype = cfgLPJmL$baselineHist,
-          subtype = "crops:pft_harvestc",
-          stage = "smoothed:cut",
-          aggregate = FALSE,
-          years = commonYears)[, , "rainfed.grassland"])
 
-      # yieldsPasture <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-      #                                           climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
-      #                                           stage = "smoothed:cut", aggregate = FALSE,
-      #                                           years = selectyears)[, , "mgrass.rainfed"])
-      # yieldsPasture <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-      #                                           climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
-      #                                           stage = "smoothed:cut", aggregate = FALSE,
-      #                                           years = selectyears)[, , "mgrass.rainfed"])
+      # HACKATHON: in calcYieldsLPJmL selectyears is implemented (for memory reasons)
+      # But it's not so nice to hard-code it here, so I used commonYears
+      # This gives a warning: Are we fine for that for now?
+      # Otherwise we can implement NULL for selectyears
+      # in which case all years of calcLPJmLHarmonize/calcLPJmLTransform should be read in
+      # which in the case of historical should not be too many and therefore be fine?
+      cfgLPJmL  <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+      yieldsLPJ <- collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
+                                            climatetype = cfgLPJmL$baselineHist,
+                                            selectyears = commonYears,
+                                            aggregate = FALSE)[, , "rainfed.grassland"])
+      # HACKATHON Note: I did not set multiple cropping argument (default: multicropping = FALSE)
+      # It then just goes to the default, so once we activate multiple cropping it would
+      # be multiple cropping yields (where it currently happens), which I guess is what
+      # we would want, right?
+
+      # extend to needed years
+      past      <- findset("past_til2020")
+      yieldsLPJ <- toolHoldConstant(yieldsLPJ, years = past)
 
       if (calibrated) {
 

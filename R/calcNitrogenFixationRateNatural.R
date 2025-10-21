@@ -20,12 +20,16 @@ calcNitrogenFixationRateNatural <- function(cells = "lpjcell") {
   years <- findset("past_til2020")
   years <- as.integer(gsub("y", "", years))
   # evapotranspiration (in m^3 per ha)
-  # as this currently uses only historical data, the lpjmlversion and climatetype is hard-coded
+  # HACKATHON: I removed the hard-coded lpjml and climatetype arguments
+  # And: In line with what we agreed on, I set it to historical and holdConstant
+  # Question: Ok like that?
+  cfgLPJmL  <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
   etRate <- calcOutput("LPJmLTransform",
-                       lpjmlversion = "lpjml5.9.5-m1",
-                       climatetype  = "MRI-ESM2-0:ssp370",
+                       lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                       climatetype  = cfgLPJmL$baselineHist,
                        subtype      = "pnv:transp",
-                       aggregate    = FALSE)[, years, ]
+                       aggregate    = FALSE)
+  etRate <- toolHoldConstant(etRate, years = years)
 
   cyears <- intersect(getYears(etRate, as.integer = TRUE), years)
   etRate <- etRate[, cyears, ]

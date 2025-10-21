@@ -45,7 +45,7 @@ calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
     # HACKATHON: prec is going to change and also need a unit transformation
     precipitation   <- calcOutput("LPJmLClimateInput_new",
                                   lpjmlVersion = "LPJmL4_for_MAgPIE_44ac93de",
-                                  climatetype  = climatetype,
+                                  climatetype  = "GSWP3-W5E5:historical",
                                   variable = "precipitation:monthlySum",
                                   stage = "smoothed",
                                   aggregate = FALSE)

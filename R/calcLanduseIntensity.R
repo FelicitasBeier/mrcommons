@@ -31,16 +31,22 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
     # Load LPJ yields and area on cell level
     cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-    yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                                             climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
-                                             stage = "smoothed:cut", aggregate = FALSE)[, , cropsLPJmL])
-    # yieldsLPJmL  <- mbind(
-    #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-    #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
-    #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, cropsLPJmL][, , "rainfed"],
-    #   calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-    #              climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
-    #              stage = "smoothed:cut", aggregate = FALSE)[, selectyears, cropsLPJmL][, , "irrigated"])
+
+    # HACKATHON: In calcProduction we now set this to calcYieldsLPJmL.
+    # I'm actually not sure what is better. See comments there about multiple cropping argument.
+    # We should decide for one way and do hte same here and in calcProduction
+    # and all other instances.
+    yieldsLPJmL  <- mbind(
+      calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                 climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
+                 stage = "smoothed:cut", aggregate = FALSE)[, , cropsLPJmL][, , "rainfed"],
+      calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                 climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
+                 stage = "smoothed:cut", aggregate = FALSE)[, , cropsLPJmL][, , "irrigated"])
+
+    # extend years to all past
+    past      <- findset("past_til2020")
+    yieldsLPJmL <- toolHoldConstant(yieldsLPJmL, years = past)
 
     if (sectoral == "kcr") {
       yieldsLPJmL   <- toolAggregate(yieldsLPJmL, rel = mag2lpj,
@@ -115,15 +121,13 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     # Load LPJ yields and area on cell level
     cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
     yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                                             climatetype = cfgLPJmL$baselineHist, subtype = "crops:pft_harvestc",
+                                             climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
                                              stage = "smoothed:cut", aggregate = FALSE,
-                                             years = selectyears)[, , "rainfed.grassland"])
-    # yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-    #                                          climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
-    #                                          stage = "smoothed:cut", aggregate = FALSE,
-    #                                          years = selectyears)[, , "mgrass.rainfed"])
+                                             years = selectyears)[, , "rainfed"][, , "grassland"])
+    # extend years to all past
+    past      <- findset("past_til2020")
+    yieldsLPJmL <- toolHoldConstant(yieldsLPJmL, years = past)
 
-    
     pastareaMAgPIE        <- calcOutput("LanduseInitialisation", cellular = TRUE, cells = "lpjcell",
                                         selectyears = seq(1965, 2015, 5), aggregate = FALSE)[, , "past"]
     getNames(yieldsLPJmL) <- getNames(pastareaMAgPIE) <- "pasture"
