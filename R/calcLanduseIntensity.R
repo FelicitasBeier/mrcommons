@@ -30,31 +30,38 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     cropsLPJmL   <- levels(droplevels(factor(mag2lpj$LPJmL5)))
 
     # Load LPJ yields and area on cell level
-    cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
+    # croparea
+    cropareaLPJmL   <- calcOutput("Croparea", sectoral = sectoral, physical = TRUE,
+                                  cellular = TRUE, irrigation = TRUE, aggregate = FALSE)
 
     # HACKATHON: In calcProduction we now set this to calcYieldsLPJmL.
     # I'm actually not sure what is better. See comments there about multiple cropping argument.
     # We should decide for one way and do hte same here and in calcProduction
     # and all other instances.
-    yieldsLPJmL  <- mbind(
-      calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                 climatetype = cfgLPJmL$baselineHist, subtype = "cropsRf:pft_harvestc",
-                 stage = "smoothed:cut", aggregate = FALSE)[, , cropsLPJmL][, , "rainfed"],
-      calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                 climatetype = cfgLPJmL$baselineHist, subtype = "cropsIr:pft_harvestc",
-                 stage = "smoothed:cut", aggregate = FALSE)[, , cropsLPJmL][, , "irrigated"])
+    cfgLPJmL     <- mrlandcore:::toolLPJmLDefault(suppressNote = FALSE)
 
-    # extend years to all past
-    past      <- findset("past_til2020")
-    yieldsLPJmL <- toolHoldConstant(yieldsLPJmL, years = past)
+    # LPJmL yields with default settings
+    # Note: When not all years of cropareaMAG are included in the historical data
+    # of LPJmL, calcOutput returns a warning that is here suppressed, since
+    # the years are in this case filled with toolHoldConstant
+    yieldsLPJmL <- suppressWarnings(collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
+                                                           climatetype = cfgLPJmL$baselineHist,
+                                                           selectyears = getItems(cropareaLPJmL, dim = 2),
+                                                           aggregate = FALSE)[, , cropsLPJmL]))
+    # Note (for multiple cropping implementation): I did not set multiple cropping
+    # argument (default now: multicropping = FALSE)
+    # It then just goes to the default, so once we activate multiple cropping it would
+    # be multiple cropping yields (where it currently happens), but we should
+    # make sure it's only set to "historical" multiple cropping, never accidentally to
+    # "future/potential" multiple cropping.
+
+    # extend years
+    yieldsLPJmL <- toolHoldConstant(yieldsLPJmL, years = getItems(cropareaLPJmL, dim = 2))
 
     if (sectoral == "kcr") {
       yieldsLPJmL   <- toolAggregate(yieldsLPJmL, rel = mag2lpj,
-                                     from = "LPJmL5", to = "MAgPIE", dim = 3.2)
+                                     from = "LPJmL5", to = "MAgPIE", dim = "crop")
     }
-
-    cropareaLPJmL   <- calcOutput("Croparea", sectoral = sectoral, physical = TRUE,
-                                  cellular = TRUE, irrigation = TRUE, aggregate = FALSE)
 
     commonYears     <- intersect(getYears(cropareaLPJmL), getYears(yieldsLPJmL))
     cropareaLPJmL   <- cropareaLPJmL[, commonYears, ]
@@ -62,7 +69,7 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
     productionLPJmL <- yieldsLPJmL[, commonYears, ] * cropareaLPJmL[, commonYears, ]
     # Aggregate to countries and across irrigation dimension
-    productionLPJmL <- dimSums(productionLPJmL, dim = c(1.1, 1.2, 3.1))
+    productionLPJmL <- dimSums(productionLPJmL, dim = c("x", "y", "irrigation"))
 
     # Load FAO data and caluculate FAO yields on country level
     productionFAO   <- collapseNames(calcOutput("FAOmassbalance",

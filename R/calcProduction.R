@@ -59,29 +59,28 @@ calcProduction <- function(products = "kcr", # nolint
       cropareaMAG <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE,
                                 cellular = TRUE, irrigation = TRUE, aggregate = FALSE)[, , magCropTypes]
 
-      # HACKATHON: in calcYieldsLPJmL selectyears is implemented (for memory reasons)
-      # But it's not so nice to hard-code it here, so I used getYears from cropareaMAG
-      # This gives a warning: Are we fine for that for now?
-      # Otherwise we can implement NULL for selectyears
-      # in which case all years of calcLPJmLHarmonize/calcLPJmLTransform should be read in
-      # which in the case of historical should not be too many and therefore be fine?
+      # LPJmL yields with default settings
+      # Note: When not all years of cropareaMAG are included in the historical data
+      # of LPJmL, calcOutput returns a warning that is here suppressed, since
+      # the years are in this case filled with toolHoldConstant
       cfgLPJmL  <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-      yieldsLPJ <- collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
+      yieldsLPJ <- suppressWarnings(collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
                                             climatetype = cfgLPJmL$baselineHist,
                                             selectyears = getItems(cropareaMAG, dim = 2),
-                                            aggregate = FALSE)[, , cropsLPJmL])
-      # HACKATHON Note: I did not set multiple cropping argument (default: multicropping = FALSE)
+                                            aggregate = FALSE)[, , cropsLPJmL]))
+      # Note (for multiple cropping implementation): I did not set multiple cropping
+      # argument (default now: multicropping = FALSE)
       # It then just goes to the default, so once we activate multiple cropping it would
-      # be multiple cropping yields (where it currently happens), which I guess is what
-      # we would want, right?
+      # be multiple cropping yields (where it currently happens), but we should
+      # make sure it's only set to "historical" multiple cropping, never accidentally to
+      # "future/potential" multiple cropping.
 
       # extend to needed years
-      past      <- findset("past_til2020")
-      yieldsLPJ <- toolHoldConstant(yieldsLPJ, years = past)
+      yieldsLPJ <- toolHoldConstant(yieldsLPJ, years = getItems(cropareaMAG, dim = 2))
 
-
+      # map LPJmL crops to MAgPIE crops
       yieldsMAG <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ,
-                                 from = "LPJmL5", to = "MAgPIE", dim = 3.2,
+                                 from = "LPJmL5", to = "MAgPIE", dim = "crop",
                                  partrel = TRUE)[, , magCropTypes]
 
       commonYears <- intersect(getYears(yieldsLPJ), getYears(cropareaMAG))
@@ -262,34 +261,36 @@ calcProduction <- function(products = "kcr", # nolint
       productionMAG  <- collapseNames(calcOutput("FAOmassbalance", aggregate = FALSE)[, , "pasture.production"])
 
     } else {
-      ####################################
-      ### pasture production celluluar ###
-      ####################################
-
+      ###################################
+      ### pasture production cellular ###
+      ###################################
       areaPasture    <- collapseNames(calcOutput("LanduseInitialisation",
                                                  cellular = TRUE,
-                                                 aggregate = FALSE)[, commonYears, "past"])
+                                                 aggregate = FALSE)[, , "past"])
 
-
-      # HACKATHON: in calcYieldsLPJmL selectyears is implemented (for memory reasons)
-      # But it's not so nice to hard-code it here, so I used commonYears
-      # This gives a warning: Are we fine for that for now?
-      # Otherwise we can implement NULL for selectyears
-      # in which case all years of calcLPJmLHarmonize/calcLPJmLTransform should be read in
-      # which in the case of historical should not be too many and therefore be fine?
+      # LPJmL yields with default settings for pasture (grassland yields only exist for rainfed conditions)
+      # Note: When not all commonYears are included in the historical data
+      # of LPJmL, calcOutput returns a warning that is here suppressed, since
+      # the years are in this case filled with toolHoldConstant.
+      # Once historical LPJmL data is updated, this warning becomes irrelevant
       cfgLPJmL  <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-      yieldsLPJ <- collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
-                                            climatetype = cfgLPJmL$baselineHist,
-                                            selectyears = commonYears,
-                                            aggregate = FALSE)[, , "rainfed.grassland"])
-      # HACKATHON Note: I did not set multiple cropping argument (default: multicropping = FALSE)
+      yieldsPasture <- suppressWarnings(collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
+                                                                 climatetype = cfgLPJmL$baselineHist,
+                                                                 selectyears = getItems(areaPasture, dim = 2),
+                                                                 aggregate = FALSE)[, , "rainfed.grassland"]))
+      # Note (for multiple cropping implementation): I did not set multiple cropping
+      # argument (default now: multicropping = FALSE)
       # It then just goes to the default, so once we activate multiple cropping it would
-      # be multiple cropping yields (where it currently happens), which I guess is what
-      # we would want, right?
+      # be multiple cropping yields (where it currently happens), but we should
+      # make sure it's only set to "historical" multiple cropping, never accidentally to
+      # "future/potential" multiple cropping.
 
       # extend to needed years
-      past      <- findset("past_til2020")
-      yieldsLPJ <- toolHoldConstant(yieldsLPJ, years = past)
+      yieldsLPJ <- toolHoldConstant(yieldsLPJ, years = getItems(areaPasture, dim = 2))
+
+      commonYears <- intersect(getYears(yieldsPasture), getYears(areaPasture))
+      areaPasture <- areaPasture[, commonYears, ]
+      yieldsPasture <- yieldsPasture[, commonYears, ]
 
       if (calibrated) {
 
