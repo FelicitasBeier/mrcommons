@@ -39,6 +39,8 @@ calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
                          climatetype  = climatetype,
                          subtype      = "pnv:pet",
                          aggregate    = FALSE) / 10 # unit transformation from mm -> m^3/ha
+    
+    pet <- toolHoldConstant(pet, years = past)
     cyears <- intersect(getYears(pet, as.integer = TRUE), past)
     pet <- pet[, cyears, ]
 
@@ -50,6 +52,7 @@ calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
                                   stage = "smoothed",
                                   aggregate = FALSE)
     dimnames(precipitation)[[3]] <- as.character(seq(1, 12))
+    precipitation <- toolHoldConstant(precipitation, years = past)
     precipitation <- precipitation[, cyears, ]
 
     ratio <- precipitation / (pet + 0.001)
