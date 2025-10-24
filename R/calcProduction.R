@@ -277,7 +277,7 @@ calcProduction <- function(products = "kcr", # nolint
       yieldsPasture <- suppressWarnings(collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
                                                                  climatetype = cfgLPJmL$baselineHist,
                                                                  selectyears = getItems(areaPasture, dim = 2),
-                                                                 aggregate = FALSE)[, , "rainfed.grassland"]))
+                                                                 aggregate = FALSE)[, , "grassland"][, , "rainfed"]))
       # Note (for multiple cropping implementation): I did not set multiple cropping
       # argument (default now: multicropping = FALSE)
       # It then just goes to the default, so once we activate multiple cropping it would
