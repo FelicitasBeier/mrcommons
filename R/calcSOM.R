@@ -28,43 +28,50 @@
 #'
 calcSOM <- function(climatetype = "historical", subtype = "stock", cells = "lpjcell") {
 
-  ypast <- as.integer(gsub("y", "", findset("past_til2020")))
-  yend <- tail(ypast, n = 1)
-  years      <- seq(1951, yend, 1)
+  past <- findset("past_til2020")
+  pastNumeric <- as.numeric(gsub("y", "", past))
+  
+  allYearsNumeric <- seq(1951, max(pastNumeric), 1)
+  allYears <- paste0("y", allYearsNumeric)
 
   cfgLPJmL   <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-  soilc      <- calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                           climatetype = cfgLPJmL$baselineHist, subtype = "pnv:soilc_layer",
-                           stage = "raw:cut", aggregate = FALSE, years = years)
-  cyears <- intersect(getYears(soilc, as.integer = TRUE), years)
-  soilc <- soilc[, cyears, ]
+  soilc      <- calcOutput("LPJmLTransform",
+                           lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                           climatetype  = cfgLPJmL$baselineHist,
+                           subtype      = "pnv:soilc_layer",
+                           stage        = "raw:cut",
+                           aggregate    = FALSE)
+
+  # As historical data, soilc only goes to 2014. Until LPJmL is updated means we use toolHoldConstant.
+  soilc <- soilc[, intersect(getYears(soilc, as.integer = TRUE), allYearsNumeric), ]
+  soilc <- mstools::toolHoldConstant(soilc, years = allYears)
 
   soilc      <- setNames(soilc[, , 1] + 1 / 3 * soilc[, , 2], "soilc")
 
-  states <- calcOutput("LUH3", landuseTypes = "LUH3", cellular = TRUE, yrs = cyears, aggregate = FALSE)
-  cyears <- intersect(getYears(states, as.integer = TRUE), cyears)
-  states <- states[, cyears, ]
+  # Maybe this should actually be until the end of soilc and then also held constant?
+  states      <- calcOutput("LUH3", landuseTypes = "LUH3", cellular = TRUE, yrs = allYears, aggregate = FALSE)
   crops       <- c("c3ann", "c4ann", "c3per", "c4per", "c3nfx")
   cropArea    <- dimSums(states[, , crops], dim = 3)
   noncropArea <- dimSums(states, dim = 3) - cropArea
 
   cropshare  <- toolFillYears(calcOutput("Croparea", sectoral = "kcr", physical = TRUE,
-                                         cellular = TRUE, irrigation = FALSE, aggregate = FALSE), cyears)
+                                         cellular = TRUE, irrigation = FALSE, aggregate = FALSE), allYears)
   cropshare  <- toolConditionalReplace(cropshare / dimSums(cropshare, dim = 3), "is.na()", 0)
   carbshare  <- calcOutput("SOCLossShare", aggregate = FALSE, subsystems = TRUE,
                            rate = "change", factor = "ipccReduced", cells = "lpjcell")
   cshare     <- dimSums(cropshare * carbshare, dim = 3)
   cshare[cshare == 0] <- 1 # target for cropland in cells without cropland equal to nat veg just as backup.
 
-  soilc <- soilc[, cyears, ]
   targetCcrop    <- soilc * cshare * cropArea
   targetCNoncrop <- soilc * noncropArea
 
   transitions <- cropArea
-  stopifnot(length(cyears) >= 2)
-  transitions[, cyears[2:length(cyears)], ] <- (cropArea[, cyears[2:length(cyears)], ]
-                                                - setYears(cropArea[, cyears[seq_along(cyears) - 1], ],
-                                                           cyears[2:length(cyears)]))
+  stopifnot(length(allYears) >= 2)
+  transitions[, allYears[2:length(allYears)], ] <- (
+    cropArea[, allYears[2:length(allYears)], ] -
+    setYears(cropArea[, allYears[seq_along(allYears) - 1], ],
+             allYears[2:length(allYears)])
+  )
 
   abandonnedland <- newland <- transitions
   abandonnedland[abandonnedland > 0] <- 0
@@ -74,8 +81,8 @@ calcSOM <- function(climatetype = "historical", subtype = "stock", cells = "lpjc
   cropC    <- cropCha    <- deltaCcrop    <- targetCcrop
   noncropC <- noncropCha <- deltaCnoncrop <- targetCNoncrop
 
-  cropC[, 2:length(cyears), ]             <- NA
-  noncropC[, 2:length(cyears), ]          <- NA
+  cropC[, 2:length(allYears), ]           <- NA
+  noncropC[, 2:length(allYears), ]        <- NA
 
   cropCha[, , ]    <- deltaCcrop[, , ]    <- NA
   noncropCha[, , ] <- deltaCnoncrop[, , ] <- NA
@@ -86,7 +93,7 @@ calcSOM <- function(climatetype = "historical", subtype = "stock", cells = "lpjc
   noncropCha[, 1, ] <- noncropC[, 1, ] / noncropArea[, 1, ]
   noncropCha[is.nan(noncropCha)] <- 0
 
-  for (yearX in (2:length(cyears))) {
+  for (yearX in (2:length(allYears))) {
 
     cropC[, yearX, ] <- (setYears(cropC[, yearX - 1, ], NULL)
                          + newland[, yearX, ] * setYears(noncropCha[, yearX - 1, ], NULL)
