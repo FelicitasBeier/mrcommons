@@ -286,7 +286,7 @@ calcProduction <- function(products = "kcr", # nolint
       # "future/potential" multiple cropping.
 
       # extend to needed years
-      yieldsLPJ <- toolHoldConstant(yieldsLPJ, years = getItems(areaPasture, dim = 2))
+      yieldsPasture <- toolHoldConstant(yieldsPasture, years = getItems(areaPasture, dim = 2))
 
       commonYears <- intersect(getYears(yieldsPasture), getYears(areaPasture))
       areaPasture <- areaPasture[, commonYears, ]
