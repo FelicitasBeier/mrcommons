@@ -2,7 +2,6 @@
 #' @description Provides MAgPIE-FEED data for aboveground and belowground residues biomass
 #'
 #' @param cellular   If TRUE calculation and output on cellular level
-#' @param cells      Switch between "magpiecell" (59199) and "lpjcell" (67420)
 #' @param plantparts both, ag (aboveground) or belowground (bg). Both can have memory
 #'                   problems for cellular outputs
 #' @param irrigation if TRUE, distinguishes irrigated and non-irrigated crops
@@ -19,7 +18,7 @@
 #' calcOutput("ResBiomass")
 #' }
 #'
-calcResBiomass <- function(cellular = FALSE, cells = "lpjcell",
+calcResBiomass <- function(cellular = FALSE,
                            plantparts = "both",
                            irrigation = FALSE, attributes = "all",
                            scenario = "default") {
@@ -29,13 +28,11 @@ calcResBiomass <- function(cellular = FALSE, cells = "lpjcell",
   # memory problems for cellular data
   if (plantparts == "both") {
     aboveGroundResidues   <- calcOutput("ResBiomass", cellular = cellular,
-                                        cells = "lpjcell",
                                         aggregate = FALSE, plantparts = "ag",
                                         irrigation = irrigation,
                                         attributes = attributes,
                                         scenario = scenario)
     belowGroundResidues   <- calcOutput("ResBiomass", cellular = cellular,
-                                        cells = "lpjcell",
                                         aggregate = FALSE, plantparts = "bg",
                                         irrigation = irrigation,
                                         attributes = attributes,
@@ -94,7 +91,6 @@ calcResBiomass <- function(cellular = FALSE, cells = "lpjcell",
     } else if (plantparts == "bg") {
 
       aboveGroundResidues <- collapseNames(calcOutput("ResBiomass", cellular = cellular,
-                                                      cells = "lpjcell",
                                                       plantparts = "ag", attributes = "dm",
                                                       irrigation = irrigation, aggregate = FALSE,
                                                       scenario = scenario))
@@ -130,12 +126,6 @@ calcResBiomass <- function(cellular = FALSE, cells = "lpjcell",
 
   if (!all(attributes %in% "all")) { # for problems with memory size
     residueProduction <- residueProduction[, , attributes]
-  }
-
-  if (cellular) {
-    if (cells == "magpiecell") {
-      residueProduction <- toolCoord2Isocell(residueProduction, cells = cells)
-    }
   }
 
   return(list(x            = residueProduction,

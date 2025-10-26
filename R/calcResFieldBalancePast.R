@@ -31,7 +31,7 @@ calcResFieldBalancePast <- function(cellular = FALSE, products = "sum", scenario
     production   <- production [, commonYears, ]
 
     if (cellular) {
-      devStatePast    <- toolIso2CellCountries(devStatePast, cells = "lpjcell")
+      devStatePast    <- toolIso2CellCountries(devStatePast)
     }
 
     # if the following parameters are changed, they also have to be changed in the GAMS code!
