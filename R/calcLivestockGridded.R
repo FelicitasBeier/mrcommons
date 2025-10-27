@@ -9,7 +9,6 @@
 #' calcOutput("calcLivestockGridded")
 #' }
 #'
-#' @importFrom magpiesets findset
 
 calcLivestockGridded <- function(details = FALSE) {
 
@@ -23,7 +22,7 @@ calcLivestockGridded <- function(details = FALSE) {
   ruminants     <- c("livst_milk", "livst_rum")
 
   # Divide ruminants in extensive and intensive depending on feedmix
-  feedPast      <- calcOutput("FeedPast", nutrients = "nr", aggregate = FALSE)
+  feedPast            <- calcOutput("FeedPast", nutrients = "nr", aggregate = FALSE)
   commonYears         <- intersect(getYears(feedPast), getYears(livestockProduction))
   feedPast            <- feedPast[, commonYears, ]
   livestockProduction <- livestockProduction[, commonYears, ]

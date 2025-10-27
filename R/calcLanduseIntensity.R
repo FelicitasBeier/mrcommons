@@ -133,10 +133,13 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
 
     # Load LPJ yields and area on cell level
     cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
-    yieldsLPJmL  <- collapseNames(calcOutput("LPJmLTransform", lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                                             climatetype = cfgLPJmL$baselineHist, subtype = "cropsRF:pft_harvestc",
-                                             stage = "smoothed:cut", aggregate = FALSE,
-                                             years = getItems(pastareaMAgPIE, dim = 2))[, , "rainfed"][, , "grassland"])
+    yieldsLPJmL  <- suppressWarnings(collapseNames(calcOutput("LPJmLTransform",
+                                                              years = getItems(pastareaMAgPIE, dim = 2),
+                                                              lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
+                                                              climatetype = cfgLPJmL$baselineHist,
+                                                              subtype = "cropsRF:pft_harvestc",
+                                                              stage = "smoothed:cut",
+                                                              aggregate = FALSE)[, , "rainfed"][, , "grassland"]))
     # extend years to all past
     yieldsLPJmL <- toolHoldConstant(yieldsLPJmL, years = getItems(pastareaMAgPIE, dim = 2))
 
