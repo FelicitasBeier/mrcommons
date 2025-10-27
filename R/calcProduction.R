@@ -83,7 +83,7 @@ calcProduction <- function(products = "kcr", # nolint
                                  from = "LPJmL5", to = "MAgPIE", dim = "crop",
                                  partrel = TRUE)[, , magCropTypes]
 
-      commonYears <- intersect(getYears(yieldsLPJ), getYears(cropareaMAG))
+      commonYears <- sort(intersect(getYears(yieldsLPJ), getYears(cropareaMAG)))
       cropareaMAG <- cropareaMAG[, commonYears, ]
       yieldsLPJ   <- yieldsLPJ[, commonYears, ]
       yieldsMAG   <- yieldsMAG[, commonYears, ]
@@ -288,8 +288,8 @@ calcProduction <- function(products = "kcr", # nolint
       # extend to needed years
       yieldsPasture <- toolHoldConstant(yieldsPasture, years = getItems(areaPasture, dim = 2))
 
-      commonYears <- intersect(getYears(yieldsPasture), getYears(areaPasture))
-      areaPasture <- areaPasture[, commonYears, ]
+      commonYears   <- sort(intersect(getYears(yieldsPasture), getYears(areaPasture)))
+      areaPasture   <- areaPasture[, commonYears, ]
       yieldsPasture <- yieldsPasture[, commonYears, ]
 
       if (calibrated) {
@@ -312,9 +312,9 @@ calcProduction <- function(products = "kcr", # nolint
       productionFAO     <- collapseNames(calcOutput("FAOmassbalance",
                                                     aggregate = FALSE)[countries, , "pasture.production.dm"])
 
-      commonYears   <- intersect(getYears(productionFAO), getYears(isoproductionMAG))
-      areaPasture   <- areaPasture[, commonYears, ]
-      productionMAG <- productionMAG[, commonYears, ]
+      commonYears      <- sort(intersect(getYears(productionFAO), getYears(isoproductionMAG)))
+      areaPasture      <- areaPasture[, commonYears, ]
+      productionMAG    <- productionMAG[, commonYears, ]
       isoproductionMAG <- isoproductionMAG[, commonYears, ]
       productionFAO    <- productionFAO[, commonYears, ]
       yieldsPasture    <- yieldsPasture[, commonYears, ]
