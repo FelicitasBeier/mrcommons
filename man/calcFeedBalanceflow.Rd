@@ -8,7 +8,8 @@ calcFeedBalanceflow(
   per_livestock_unit = FALSE,
   cellular = FALSE,
   products = "kall",
-  future = "constant"
+  future = "constant",
+  yearly = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ calcFeedBalanceflow(
 \item{products}{products in feed baskets that shall be reported}
 
 \item{future}{if FALSE, only past years will be reported (reduces memory)}
+
+\item{yearly}{whether to calculate yearly data or only magpie 5year timesteps}
 }
 \value{
 List of magpie objects with results on country or cellular level, unit and description.

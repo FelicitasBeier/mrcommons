@@ -8,7 +8,8 @@ calcFeedPast(
   balanceflow = TRUE,
   cellular = FALSE,
   products = "kall",
-  nutrients = "all"
+  nutrients = "all",
+  yearly = FALSE
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ calcFeedPast(
 
 \item{nutrients}{nutrients like dry matter (DM), reactive nitrogen (Nr), Phosphorus (P),
 Generalizable Energy (GE) and wet matter (WM).}
+
+\item{yearly}{whether to calculate yearly data or only magpie 5year timesteps}
 }
 \value{
 List of magpie objects with results on country or cellular level, unit and description.

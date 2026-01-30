@@ -4,13 +4,12 @@
 \alias{calcResDemand}
 \title{calcResDemand}
 \usage{
-calcResDemand(cellular = FALSE, scenario = "dafault")
+calcResDemand(cellular = FALSE, yearly = FALSE)
 }
 \arguments{
 \item{cellular}{If TRUE calculation and output on cellular level}
 
-\item{scenario}{define scenario switch for sensititvy analysis
-for historical SOC budget}
+\item{yearly}{whether to calculate yearly data or only magpie 5 year time steps}
 }
 \value{
 List of magpie objects with results on country level, weight on country level, unit and description.
@@ -27,5 +26,5 @@ calcOutput("ResDemand")
 \code{\link[=calcResBiomass]{calcResBiomass()}}
 }
 \author{
-Benjamin Leon Bodirsky
+Benjamin Leon Bodirsky, Kristine Karstens
 }

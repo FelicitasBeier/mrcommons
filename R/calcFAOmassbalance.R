@@ -9,6 +9,7 @@
 #'
 #' @param version whether to use the pre ("pre2010") or post ("post2010") 2010 versions of FAOSTAT Food balances,
 #' or "join2010" which joins them at 2010
+#' @param yearly whether to calculate yearly data or only magpie 5year timesteps
 #' @return List of magpie objects with results on country level, weight on country level, unit and description.
 #' @author Benjamin Leon Bodirsky, Xiaoxi Wang, David Chen
 #' @seealso
@@ -21,7 +22,7 @@
 #' @importFrom withr local_options
 
 
-calcFAOmassbalance <- function(version = "join2010") {
+calcFAOmassbalance <- function(version = "join2010", yearly = FALSE) {
   local_options(magclass_sizeLimit = 1e+12)
 
   if (version == "join2010") {
@@ -32,7 +33,10 @@ calcFAOmassbalance <- function(version = "join2010") {
     past <- c("y2010", "y2015", "y2020")
   }
 
-  mb <- calcOutput("FAOmassbalance_pre", version = version, aggregate = FALSE)[, past, ]
+  mb <- calcOutput("FAOmassbalance_pre", version = version, aggregate = FALSE)
+  if (yearly == FALSE) {
+    mb <- mb[, past, ]
+  }
   mb1 <- add_columns(mb, dim = 3.2, addnm = "bioenergy")
   mb1[, , "bioenergy"] <- 0
   items <- intersect(getItems(mb1, dim = 3.2), c("production", "production_estimated",
@@ -55,31 +59,32 @@ calcFAOmassbalance <- function(version = "join2010") {
   ### Add feed by animal group
   # consists of feed by animal group according to Isabelle Weindls Feed Baskets
   # plus a balanceflow to be consistent with FAO
-  feed <- calcOutput("FeedPast", balanceflow = FALSE, aggregate = FALSE)
+  feed <- calcOutput("FeedPast", balanceflow = FALSE, aggregate = FALSE, yearly = yearly)
   getNames(feed, dim = 1) <- paste0("feed_", substring(getNames(feed, dim = 1), 7))
   feed <- as.magpie(aperm(unwrap(feed), c(1, 2, 4, 3, 5)))
 
-  balanceflow <- calcOutput("FeedBalanceflow", aggregate = FALSE, future = FALSE)
+  balanceflow <- calcOutput("FeedBalanceflow", aggregate = FALSE, future = FALSE, yearly = yearly)
   getNames(balanceflow, dim = 1) <- paste0("feed_", getNames(balanceflow, dim = 1))
   balanceflow <- balanceflow * calcOutput("Attributes", aggregate = FALSE)
   balanceflow <- as.magpie(aperm(unwrap(balanceflow), c(1, 2, 4, 3, 5)))
 
   feed <- feed + balanceflow
   # test to check whether distribution of feed was ok
+  cyears <- intersect(getYears(mb2), getYears(feed))
   if (any(round(
-                mb2[, , "feed"][, , getNames(mb, dim = 1)]
-                - dimSums(feed[, getYears(mb2), getNames(mb, dim = 1)], dim = 3.2),
+                mb2[, cyears, "feed"][, , getNames(mb, dim = 1)]
+                - dimSums(feed[, cyears, getNames(mb, dim = 1)], dim = 3.2),
                 7) != 0)) {
     vcat(verbosity = 1, "Something is strange here. Check Feedbalanceflow")
   }
-  mb3 <- mbind(mb2, feed[, getYears(mb2), ])
+  mb3 <- mbind(mb2[, cyears, ], feed[, cyears, ])
 
   forest <- calcOutput("TimberDemand", aggregate = FALSE)
   # quick fix, make 2020 same as 2019
   forest2020 <- forest[, 2019, ]
   forest2020 <- setYears(forest2020, 2020)
   forest <- mbind(forest, forest2020)
-  #convert to dry matter content
+  # convert to dry matter content
   mb3[, , getNames(mb3[, , paste0("wood.",
                                   getNames(forest, dim = 2),
                                   ".dm")])] <- forest[, intersect(getYears(mb3),
@@ -97,17 +102,27 @@ calcFAOmassbalance <- function(version = "join2010") {
 
   # Adding Crop Residues Production and use
   kres <- findset("kres")
-  res <- calcOutput("ResDemand", aggregate = FALSE)
+  res <- calcOutput("ResDemand", aggregate = FALSE, yearly = yearly)
 
   res <- as.magpie(aperm(unwrap(res), c(1, 2, 4, 3, 5)))
   mb3[, , kres][, , c("bioenergy", "domestic_supply", "feed", "other_util", "production")] <- res[, getYears(mb3), ]
 
   ##############################################################################
   ### Dividing other_util into bioenergy and other_util
-  bioenergy <- collapseNames(calcOutput("1stBioenergyPast", aggregate = FALSE)[, , "INDPROD"])
+  bioenergy <- calcOutput("1stBioenergyPast", aggregate = FALSE)
   att <- calcOutput("Attributes", aggregate = FALSE)
   ethanolOilFactor <- (att / (collapseNames(att[, , "ge"])))[, , c("ethanol", "oils")]
-  mb3[, , c("ethanol", "oils")][, , "bioenergy"] <- bioenergy[, getYears(mb3), c("ethanol", "oils")] *
+  mb3[, , c("ethanol", "oils")][, , "bioenergy"] <- bioenergy[, getYears(mb3),
+                                                              c("ethanol", "oils")][
+                                                                                    , , "INDPROD", drop = TRUE] *
+    ethanolOilFactor
+  mb3[, , c("ethanol", "oils")][, , "import"] <- bioenergy[, getYears(mb3),
+                                                           c("ethanol", "oils")][
+                                                                                 , , "IMPORTS", drop = TRUE] *
+    ethanolOilFactor
+  mb3[, , c("ethanol", "oils")][, , "export"] <- bioenergy[, getYears(mb3),
+                                                           c("ethanol", "oils")][
+                                                                                 , , "EXPORTS", drop = TRUE] * -1 *
     ethanolOilFactor
 
   # in some cases bioenergy demand from EEA exceeds ethanol production.
@@ -116,11 +131,19 @@ calcFAOmassbalance <- function(version = "join2010") {
   mb3[, , c("ethanol",
             "oils")][, , "bioenergy"][exceeded] <- mb3[, , c("ethanol",
                                                              "oils")][, , "other_util"][exceeded]
-
   mb3[, , c("ethanol",
             "oils")][, , "other_util"] <- mb3[, , c("ethanol",
                                                     "oils")][, , "other_util"] - mb3[, , c("ethanol",
                                                                                            "oils")][, , "bioenergy"]
+  # now scale exports and imports by same amount that the total production was scaled by, only for ethanol
+  # oils already have trade, what to do?
+  scf <- mb3[, , "ethanol"][, , "bioenergy"] /
+    (bioenergy[, getYears(mb3), "ethanol"][
+                                           , , "INDPROD", drop = TRUE] * ethanolOilFactor[, , "ethanol"])
+  scf[is.na(scf)] <- 0
+  mb3[, , "ethanol"][, , "import"] <- mb3[, , "ethanol"][, , "import"] * scf
+  mb3[, , "ethanol"][, , "export"] <- mb3[, , "ethanol"][, , "export"] * scf
+
   # round to 1 ton to avoid calculation issues
   mb3 <- round(mb3, 6)
 

@@ -4,11 +4,7 @@
 \alias{calcResFieldBalancePast}
 \title{calcResFieldBalancePast}
 \usage{
-calcResFieldBalancePast(
-  cellular = FALSE,
-  products = "sum",
-  scenario = "default"
-)
+calcResFieldBalancePast(cellular = FALSE, products = "sum")
 }
 \arguments{
 \item{cellular}{If TRUE calculation and output on cellular level}

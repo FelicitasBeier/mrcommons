@@ -6,6 +6,7 @@
 #' @param cellular    if TRUE value is calculate on cellular level with returned datajust in dry matter
 #' @param nutrients   nutrients like dry matter (DM), reactive nitrogen (Nr), Phosphorus (P),
 #'                    Generalizable Energy (GE) and wet matter (WM).
+#' @param yearly whether to calculate yearly data or only magpie 5year timesteps
 #' @return List of magpie objects with results on country or cellular level, unit and description.
 #' @author Isabelle Weindl, Benjamin Leon Bodirsky, Kristine Karstens
 #' @examples
@@ -16,7 +17,7 @@
 #' @importFrom magclass getNames
 
 calcFeedPast <- function(balanceflow = TRUE, cellular = FALSE,
-                         products = "kall", nutrients = "all") {
+                         products = "kall", nutrients = "all", yearly = FALSE) {
 
   if (cellular && (length(nutrients) > 1)) {
     stop("out of memory reasons, cellular datasets can only be used with one nutrient")
@@ -30,26 +31,33 @@ calcFeedPast <- function(balanceflow = TRUE, cellular = FALSE,
 
   kliProduction       <- calcOutput("Production", products = "kli",
                                     cellular = cellular, aggregate = FALSE)
-  livestockProduction <- collapseNames(kliProduction[, past, "dm"])
+  livestockProduction <- collapseNames(kliProduction[, , "dm"])
+  if (yearly == FALSE) {
+    cyears <- intersect(past, getYears(kliProduction))
+    livestockProduction <- livestockProduction[, cyears, ]
+  }
   animalProduction    <- add_columns(livestockProduction, addnm = "fish", dim = 3.1)
   animalProduction[, , "fish"]        <- 0
   getNames(animalProduction, dim = 1) <- paste0("alias_", getNames(animalProduction, dim = 1))
 
-  feedBaskets         <- calcOutput("FeedBasketsPast", non_eaten_food = FALSE, aggregate = FALSE)
+  feedBaskets         <- calcOutput("FeedBasketsPast", yearly = yearly, non_eaten_food = FALSE, aggregate = FALSE)
   feedBaskets         <- feedBaskets[, , products2]
 
   if (cellular) {
     feedBaskets <- toolIso2CellCountries(feedBaskets)
   }
 
-  feedConsumption  <- animalProduction * feedBaskets
+  cyears <- intersect(getYears(feedBaskets), getYears(animalProduction))
+  feedConsumption  <- animalProduction[, cyears, ] * feedBaskets[, cyears, ]
   min              <- 0
 
   if (balanceflow) {
     balanceflow <- calcOutput("FeedBalanceflow", cellular = cellular, products = products, aggregate = FALSE)
     getNames(balanceflow, dim = 1) <- paste0("alias_", getNames(balanceflow, dim = 1))
-    feedConsumption <- feedConsumption + balanceflow[getCells(feedConsumption), getYears(feedConsumption),
-                                                     getNames(feedConsumption)]
+
+    cyears <- intersect(getYears(feedConsumption), getYears(balanceflow))
+    feedConsumption <- feedConsumption[, cyears, ] + balanceflow[getCells(feedConsumption), cyears,
+                                                                 getNames(feedConsumption)]
     min <- -Inf
 
   } else if (balanceflow != FALSE) {
