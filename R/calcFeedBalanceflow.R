@@ -36,7 +36,7 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
     faoFeed          <- add_columns(faoFeed, addnm = "pasture", dim = 3.1)
 
     magFeednutrients <- calcOutput("FeedPast", balanceflow = FALSE, cellular = FALSE,
-                                   aggregate = FALSE, nutrients = "all", products = products)
+                                   aggregate = FALSE, nutrients = "all", products = products, yearly = yearly)
     magFeed          <- magFeednutrients[, , "dm"]
 
     magFeedShare     <- magFeed / dimSums(magFeed, dim = 3.1)
@@ -89,7 +89,7 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
       countryToCell <- toolGetMappingCoord2Country()
       countryToCell$coordiso <- paste(countryToCell$coords, countryToCell$iso, sep = ".")
       magFeedCell      <- calcOutput("FeedPast", balanceflow = FALSE,
-                                     cellular = TRUE, 
+                                     cellular = TRUE,
                                      aggregate = FALSE, nutrients = "dm",
                                      products = products, yearly = yearly)
       magFeedCell      <- magFeedCell[, , commonproducts]
@@ -133,11 +133,11 @@ calcFeedBalanceflow <- function(per_livestock_unit = FALSE, # nolint
     kli  <- findset("kli")
     past <- findset("past_til2020")
 
-    feedBalanceflow <- calcOutput("FeedBalanceflow", cellular = cellular, 
+    feedBalanceflow <- calcOutput("FeedBalanceflow", cellular = cellular,
                                   products = products, future = future, aggregate = FALSE,
                                   yearly = yearly)
     livestockProduction <- collapseNames(calcOutput("Production", products = "kli",
-                                                    cellular = cellular, 
+                                                    cellular = cellular,
                                                     aggregate = FALSE)[, , kli][, , "dm"])
     if (yearly == FALSE) {
       cyears <- intersect(past, getYears(livestockProduction))
