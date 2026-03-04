@@ -4,7 +4,8 @@
 #' @param physical   physical area or havested area
 #' @param attributes in dm, wm, ge, nr, p, k
 #' @param cellular   if TRUE value is calculate on cellular level
-#' @param areaSource data source for croparea used in calculation: LandIng Toolbox of FAOLUH. The latter one is depreciated.
+#' @param areaSource data source for croparea used in calculation: LandIng Toolbox of FAOLUH.
+#' The latter one is depreciated.
 #' @param irrigation distinguish irrigation or not
 #' @param cut        FALSE (default) - do not cut off yields,
 #'                   number between 0 and 1 to define percentile value for cut off
@@ -20,7 +21,7 @@ calcFAOYield <- function(physical = TRUE, attributes = "dm", irrigation = FALSE,
                            irrigation = irrigation, cellular = cellular, aggregate = FALSE)
 
   area <- calcOutput("Croparea", physical = physical, cellular = cellular,
-                       irrigation = irrigation, aggregate = FALSE, datasource = areaSource)
+                     irrigation = irrigation, aggregate = FALSE, datasource = areaSource)
 
   yield      <- collapseNames(production) / area
   yield[yield == Inf | yield == -Inf | is.nan(yield) | yield == 0] <- NA
