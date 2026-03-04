@@ -58,7 +58,7 @@ calcNitrogenWithdrawalByCrop <- function(indicator = "total", cellular = FALSE, 
 
   if (indicator == "by_physical_area") {
     area <- collapseNames(calcOutput("Croparea", aggregate = FALSE, physical = TRUE, cellular = cellular,
-                                     irrigation = irrigation, sectoral = "kcr")[, past, ])
+                                     irrigation = irrigation)[, past, ])
     if (irrigation2 != "FALSE") { # again, for size reasons
       area <- area[, , irrigation2]
     }
@@ -71,7 +71,7 @@ calcNitrogenWithdrawalByCrop <- function(indicator = "total", cellular = FALSE, 
     unit <- "t Nr per ha physical area"
   } else if (indicator == "by_area_harvested") {
     area <- collapseNames(calcOutput("Croparea", physical = FALSE, cellular = cellular, irrigation = irrigation,
-                                     aggregate = FALSE, sectoral = "kcr")[, past, ])
+                                     aggregate = FALSE)[, past, ])
     if (irrigation2 != "FALSE") { # again, for size reasons
       area <- area[, , irrigation2]
     }

@@ -54,7 +54,7 @@ calcNitrogenFixationPast <- function(fixation_types = "both", # nolint: object_n
   }
   if (fixation_types %in% c("both", "fixation_freeliving")) {
     area <- collapseNames(calcOutput("Croparea", cellular = cellular, aggregate = FALSE,
-                                     sectoral = "kcr", physical = TRUE, irrigation = irrigation))
+                                     physical = TRUE, irrigation = irrigation))
     commonYears <- intersect(getYears(area), commonYears)
     area <- area[, commonYears, ]
     freeliving <- setYears(readSource("Herridge", subtype = "freeliving", convert = FALSE), NULL)

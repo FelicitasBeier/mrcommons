@@ -29,7 +29,7 @@ calcFertilizerByCrop <- function(indicator = "total", deposition = "Nsurplus2", 
                                                 dim = 3.1) * withdrawal[, cyears, ]
   if (indicator == "by_physical_area") {
     area <- collapseNames(calcOutput("Croparea", aggregate = FALSE, physical = TRUE,
-                                     cellular = cellular, sectoral = "kcr")[, cyears, ])
+                                     cellular = cellular)[, cyears, ])
     out <- inputsPerCrop[, , getNames(area)] / area
     weight <- out
     weight[, , ] <- area
@@ -38,7 +38,7 @@ calcFertilizerByCrop <- function(indicator = "total", deposition = "Nsurplus2", 
     out <- data$x
   } else if (indicator == "by_area_harvested") {
     area <- collapseNames(calcOutput("Croparea", physical = FALSE, cellular = cellular,
-                                     aggregate = FALSE, sectoral = "kcr")[, past, ])
+                                     aggregate = FALSE)[, past, ])
     out <- inputsPerCrop[, , getNames(area)] / area
     weight <- out
     weight[, , ] <- area

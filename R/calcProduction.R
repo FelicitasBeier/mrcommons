@@ -57,7 +57,7 @@ calcProduction <- function(products = "kcr", cellular = FALSE, cells = "lpjcell"
       yieldsMAG      <- toolAggregate(x = yieldsLPJ, rel = mappingMAG2LPJ, from = "LPJmL", to = "MAgPIE",
                                       dim = 3.1, partrel = TRUE)[, , magCropTypes]
 
-      cropareaMAG    <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE, cellular = TRUE,
+      cropareaMAG    <- calcOutput("Croparea", physical = TRUE, cellular = TRUE,
                                    irrigation = TRUE, aggregate = FALSE)[, , magCropTypes]
 
       commonYears <- intersect(getYears(yieldsLPJ), getYears(cropareaMAG))
