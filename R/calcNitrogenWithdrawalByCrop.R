@@ -37,8 +37,9 @@ calcNitrogenWithdrawalByCrop <- function(indicator = "total", cellular = FALSE, 
                                  irrigation = irrigation, attributes = "nr", aggregate = FALSE)[, past, ])
   seed <- collapseNames(calcOutput("Seed", cellular = cellular, products = "kcr",
                                    attributes = "nr", irrigation = irrigation, aggregate = FALSE)[, past, ])
-  fixation <- calcOutput("NitrogenFixationPast", cellular = cellular, irrigation = irrigation,
-                         fixation_types = "fixation_crops", aggregate = FALSE)
+  fixation <- calcOutput("NitrogenFixationSymbiotic", cellular = cellular, irrigation = irrigation,
+                         aggregate = FALSE)
+  fixation <- dimSums(fixation, dim = 3.2)
 
   if (irrigation2 != "FALSE") { # again, for size reasons
     harvest <- harvest[, , irrigation2]
