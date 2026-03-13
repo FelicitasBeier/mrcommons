@@ -15,7 +15,7 @@ calcNitrogenFixationFreeliving <- function(cellular = FALSE, irrigation = FALSE)
 
   area <- collapseNames(calcOutput("Croparea", cellular = cellular, aggregate = FALSE,
                                    physical = TRUE, irrigation = irrigation))
-  fallow <- calcOutput("FallowLand", aggregate = FALSE)
+  fallow <- calcOutput("FallowLand", cellular = cellular, aggregate = FALSE)
   commonYears <- intersect(getYears(area), getYears(fallow))
   area <- mbind(area[, commonYears, ], fallow[, commonYears, ])
   freeliving <- setYears(readSource("Herridge", subtype = "freeliving", convert = FALSE), NULL)
