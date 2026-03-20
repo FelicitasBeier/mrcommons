@@ -23,7 +23,8 @@ calcNitrogenBudgetCropland <- function(cellular = FALSE,
   bg <- dimSums(collapseNames(calcOutput("ResBiomass", cellular = cellular,
                                          plantparts = "bg", aggregate = FALSE)[, , "nr"]), dim = 3.1)
   seed <- dimSums(calcOutput("Seed", cellular = cellular, products = "kcr", aggregate = FALSE)[, , "nr"], dim = 3)
-  fixationFreeliving <- dimSums(calcOutput("NitrogenFixationFreeliving", aggregate = FALSE, cellular = cellular), dim = "crops")
+  fixationFreeliving <- dimSums(calcOutput("NitrogenFixationFreeliving", aggregate = FALSE, cellular = cellular),
+                                dim = "crops")
   fixationCrops <- dimSums(calcOutput("NitrogenFixationSymbiotic", aggregate = FALSE, cellular = cellular),
                            dim = c(3.2, 3.3))
   som <- calcOutput("SOMlossN", cellular = cellular, aggregate = FALSE)
