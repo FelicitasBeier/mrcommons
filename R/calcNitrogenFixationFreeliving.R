@@ -19,7 +19,10 @@ calcNitrogenFixationFreeliving <- function(cellular = FALSE, irrigation = FALSE)
   freeliving <- setYears(readSource("Herridge", subtype = "freeliving", convert = FALSE), NULL)
   freeliving <- mbind(
     freeliving,
-    setNames(freeliving[, , "tece"], "fallow") # use value of temperate cereals for fallow
+    setNames(freeliving[, , "tece"], "fallow") # use value of temperate cereals for fallow.
+    # justification: bare fallow has likely a bit less (as less C for Nfixing bacteria available)
+    # while green fallow has a bit more, but all not too much different as long as no
+    # planted green fallow with legumes is present, which is usually not.
   )
   freeliving <- area * freeliving
   fixFreeliving <- add_dimension(x = freeliving, dim = 3.1,

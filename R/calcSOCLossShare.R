@@ -5,7 +5,8 @@
 #'                   if TRUE crop specific values will be reported,
 #'                   if aggregated crop specific factors will be aggregated using crop area
 #' @param rate if change, change rates will be reported; if loss, loss rates will be reported
-#' @param factor switch for different ipcc versions (ipccReduced, ipccReduced2019)
+#' @param factor switch for different ipcc versions (ipccReduced, ipccReduced2019, ipccReduced2019Fallow)
+#' for the parameters of FLU in Table 5.5 of IPCC Guidelines for National Greenhouse Gas Inventories Chapter 5.
 #' @param cells "magpiecell" for 59199 cells or "lpjcell" for 67420 cells
 #'
 #' @return List of magpie objects with results on cellular level, weight, unit and description.
@@ -23,7 +24,8 @@ calcSOCLossShare <- function(subsystems = FALSE, rate = "change", factor = "ipcc
                                    datasource = factor, cells = cells)
 
   factor2SCF         <- c(ipccReduced     = "SCF_sub",
-                          ipccReduced2019 = "SCF_sub2019")
+                          ipccReduced2019 = "SCF_sub2019",
+                          ipccReduced2019Fallow = "SCF_sub2019_2")
   scf                <- toolSubtypeSelect(factor, factor2SCF)
   scfSub2IPCCclimate <- readSource("IPCC", subtype = scf, convert = FALSE)[, , getNames(ipccClimate)]
 
@@ -38,7 +40,7 @@ calcSOCLossShare <- function(subsystems = FALSE, rate = "change", factor = "ipcc
 
     if (subsystems == "aggregated") {
       magCrop      <- calcOutput("Croparea", physical = TRUE, cellular = TRUE,
-                                 irrigation = FALSE, aggregate = FALSE)
+                                 irrigation = FALSE, fallow = TRUE, aggregate = FALSE)
       kcr2all      <- data.frame(list(kcr = getNames(socLossShare), all = rep("all", 19)))
       socLossShare <- toolAggregate(socLossShare, weight = magCrop, rel = kcr2all, from = "kcr", to = "all", dim = 3)
       getNames(socLossShare) <- "cshare"
