@@ -35,7 +35,7 @@ calcNitrogenFixationSymbiotic <- function(cellular = FALSE, irrigation = FALSE) 
   ndfa <- setYears(readSource("Herridge", subtype = "ndfa"), NULL)
   ndfa <- ndfa[getItems(biomass, dim = if (dimExists("iso", biomass)) "iso" else 1.1), , ]
   biomass <- biomass * ndfa
-  fixBiomass <- add_dimension(biomass, dim = 3.1, nm = "fixation_crops")
+  fixBiomass <- add_dimension(biomass, dim = 3.1, add = "fixation", nm = "fixation_crops")
 
   return(list(x = fixBiomass,
               weight = NULL,

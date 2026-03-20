@@ -14,18 +14,16 @@
 calcNitrogenFixationFreeliving <- function(cellular = FALSE, irrigation = FALSE) {
 
   area <- collapseNames(calcOutput("Croparea", cellular = cellular, aggregate = FALSE,
-                                   physical = TRUE, irrigation = irrigation))
-  fallow <- calcOutput("FallowLand", cellular = cellular, aggregate = FALSE)
-  commonYears <- intersect(getYears(area), getYears(fallow))
-  area <- mbind(area[, commonYears, ], fallow[, commonYears, ])
+                                   physical = TRUE, irrigation = irrigation, fallow = TRUE))
+
   freeliving <- setYears(readSource("Herridge", subtype = "freeliving", convert = FALSE), NULL)
   freeliving <- mbind(
     freeliving,
     setNames(freeliving[, , "tece"], "fallow") # use value of temperate cereals for fallow
   )
   freeliving <- area * freeliving
-  freeliving <- dimSums(freeliving, dim = 3)
-  fixFreeliving <- setNames(freeliving, "fixation_freeliving")
+  fixFreeliving <- add_dimension(x = freeliving, dim = 3.1,
+                                 add = "fixation", nm = "fixation_freeliving")
 
   return(list(x = fixFreeliving,
               weight = NULL,
