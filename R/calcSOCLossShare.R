@@ -17,7 +17,7 @@
 #' calcOutput("SOCLossShare", aggregate = FALSE)
 #' }
 #'
-calcSOCLossShare <- function(subsystems = FALSE, rate = "change", factor = "ipccReduced",
+calcSOCLossShare <- function(subsystems = FALSE, rate = "change", factor = "ipccReduced2019Fallow",
                              cells = "lpjcell") {
 
   ipccClimate        <- calcOutput("ClimateClass", aggregate = FALSE,

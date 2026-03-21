@@ -7,7 +7,7 @@
 calcSOCLossShare(
   subsystems = FALSE,
   rate = "change",
-  factor = "ipccReduced",
+  factor = "ipccReduced2019Fallow",
   cells = "lpjcell"
 )
 }

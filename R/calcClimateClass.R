@@ -32,7 +32,7 @@ calcClimateClass <- function(datasource = "koeppen", cells = "magpiecell") {
 
     if (grepl("ipccReduced", datasource)) {
       reduceIPCC  <- toolGetMapping("IPCC2IPCCreduced.csv", type = "sectoral", where = "mappingfolder")
-      x           <- toolAggregate(x, reduceIPCC, from = "ipcc", to = datasource, dim = 3, partrel = TRUE)
+      x           <- toolAggregate(x, reduceIPCC, from = "ipcc", to = "ipccReduced", dim = 3, partrel = TRUE)
     }
 
   } else {
