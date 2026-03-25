@@ -39,6 +39,7 @@ calcBEYield <- function(returnWeights = FALSE) {
   weightBetr <- weight
   weightBetr[is.na(out[, , "betr"])] <- 0
   weightExp <- mbind(setNames(weightBegr, "begr"), setNames(weightBetr, "betr"))
+  out[is.na(out)] <- 0
 
   if (returnWeights) {
     return(list(x            = weightExp,
