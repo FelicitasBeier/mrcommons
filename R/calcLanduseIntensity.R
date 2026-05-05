@@ -38,16 +38,16 @@ calcLanduseIntensity <- function(sectoral = "kcr", rescale = TRUE) {
     # I'm actually not sure what is better. See comments there about multiple cropping argument.
     # We should decide for one way and do hte same here and in calcProduction
     # and all other instances.
-    cfgLPJmL     <- mrlandcore:::toolLPJmLDefault(suppressNote = FALSE)
+    cfgLPJmL     <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
 
     # LPJmL yields with default settings
     # Note: When not all years of cropareaMAG are included in the historical data
     # of LPJmL, calcOutput returns a warning that is here suppressed, since
     # the years are in this case filled with toolHoldConstant
     yieldsLPJmL <- suppressWarnings(collapseNames(calcOutput("YieldsLPJmL", lpjml = cfgLPJmL$defaultLPJmLVersion,
-                                                           climatetype = cfgLPJmL$baselineHist,
-                                                           selectyears = getItems(cropareaLPJmL, dim = 2),
-                                                           aggregate = FALSE)[, , cropsLPJmL]))
+                                                             climatetype = cfgLPJmL$baselineHist,
+                                                             selectyears = getItems(cropareaLPJmL, dim = 2),
+                                                             aggregate = FALSE)[, , cropsLPJmL]))
     # Note (for multiple cropping implementation): I did not set multiple cropping
     # argument (default now: multicropping = FALSE)
     # It then just goes to the default, so once we activate multiple cropping it would
