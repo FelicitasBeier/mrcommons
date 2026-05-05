@@ -10,9 +10,6 @@ calcResFieldBalancePast(cellular = FALSE, products = "sum")
 \item{cellular}{If TRUE calculation and output on cellular level}
 
 \item{products}{"sum" (default) or "kres"}
-
-\item{scenario}{define scenario switch for sensitivity analysis
-for historical SOC budget}
 }
 \value{
 data
