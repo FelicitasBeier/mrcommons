@@ -18,6 +18,7 @@
 #' \dontrun{
 #' calcOutput("FAOmassbalance")
 #' }
+
 #' @importFrom magclass getNames<- as.magpie
 #' @importFrom withr local_options
 
