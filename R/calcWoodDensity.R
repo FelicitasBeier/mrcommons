@@ -21,7 +21,7 @@ calcWoodDensity <- function() {
   ipccDensity <- c(A = 0.59, B = 0.52, C = 0.45, D = 0.45, E = 0.45)
 
   # Get cell-level Koeppen-Geiger climate class shares (magpiecell = "ISO.number" format)
-  climateClass <- calcOutput("ClimateClass", datasource = "koeppen", cells = "magpiecell", aggregate = FALSE)
+  climateClass <- calcOutput("ClimateClass", datasource = "koeppen", aggregate = FALSE)
 
   # Use first year only (shares are time-invariant)
   if (!is.null(getYears(climateClass))) {
