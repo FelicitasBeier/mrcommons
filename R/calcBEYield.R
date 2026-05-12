@@ -30,7 +30,7 @@ calcBEYield <- function(returnWeights = FALSE) {
   # Cropland area (summed over all crops, 1995 base year) used as aggregation weight.
   weight <- calcOutput("Croparea", sectoral = "kcr", physical = TRUE, irrigation = TRUE,
                        cellular = TRUE, aggregate = FALSE)
-  weightDetail <- setYears(dimSums(weight[, "y1995", ], dim = "kcr"), NULL)
+  weightDetail <- setYears(dimSums(weight[, "y1995", ], dim = "MAG"), NULL)
   weight       <- setYears(dimSums(weight[, "y1995", ], dim = 3), NULL)
 
   # Crop-specific weights: cells with NA yield are set to 0 so they are
