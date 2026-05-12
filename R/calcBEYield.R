@@ -44,8 +44,10 @@ calcBEYield <- function(returnWeights = FALSE) {
   weightDetailBetr <- weightDetail
   weightDetailBetr[is.na(out[, , "betr"])] <- 0
   weightExp <- mbind(setNames(weightBegr, "begr"), setNames(weightBetr, "betr"))
-  weightDetailExp <- mbind(add_dimension(weightDetailBegr, dim = 3.1, add = "kbe", nm = "begr"),
-			   add_dimension(weightDetailBetr, dim = 3.1, add = "kbe", nm = "betr"))
+  weightDetailExp <- mbind(add_dimension(weightDetailBegr, dim = 3.1,
+                                         add = "kbe", nm = "begr"),
+                           add_dimension(weightDetailBetr, dim = 3.1,
+                                         add = "kbe", nm = "betr"))
   out[is.na(out)] <- 0
 
   if (returnWeights) {
