@@ -17,7 +17,7 @@ List of magpie objects with results on cellular level, weight, unit and descript
 Calculates bioenergy crop yields from Li et al. (2020) for the two
 MAgPIE bioenergy types begr and betr. begr takes the maximum yield across
 Miscanthus and Switchgrass per cell. betr takes the maximum yield across
-Eucalypt, Poplar, and Willow per cell.
+Eucalypt (warm/tropical climates only), Poplar, and Willow per cell.
 }
 \examples{
 \dontrun{

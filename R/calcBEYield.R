@@ -2,7 +2,7 @@
 #' @description Calculates bioenergy crop yields from Li et al. (2020) for the two
 #' MAgPIE bioenergy types begr and betr. begr takes the maximum yield across
 #' Miscanthus and Switchgrass per cell. betr takes the maximum yield across
-#' Eucalypt, Poplar, and Willow per cell.
+#' Eucalypt (warm/tropical climates only), Poplar, and Willow per cell.
 #'
 #' @param returnWeights if TRUE returns crop-specific cellular cropland area weights
 #'   (begr/betr) instead of the yields
@@ -18,12 +18,37 @@ calcBEYield <- function(returnWeights = FALSE) {
 
   x <- setYears(readSource("Li2020", convert = FALSE), NULL)
 
+  climateWarm <- readSource("IPCCClimate", convert = "onlycorrect")
+
+  selectionWarm <- c(
+    "Warm Temperate Moist" = TRUE,
+    "Warm Temperate Dry"   = TRUE,
+    "Cool Temperate Moist" = FALSE,
+    "Cool Temperate Dry"   = FALSE,
+    "Polar Moist"          = FALSE,
+    "Polar Dry"            = FALSE,
+    "Boreal Moist"         = FALSE,
+    "Boreal Dry"           = FALSE,
+    "Tropical Montane"     = TRUE,
+    "Tropical Wet"         = TRUE,
+    "Tropical Moist"       = TRUE,
+    "Tropical Dry"         = TRUE
+  )
+
+  # each cell has exactly one zone = 1, so summing over TRUE zones gives 0 or 1
+  climateWarm <- dimSums(climateWarm[, , names(selectionWarm)[selectionWarm]], dim = 3.1)
+
   # begr: cell-wise maximum across herbaceous crops; na.rm = TRUE retains cells
   # where only one of the two species has a valid yield
   begr <- setNames(pmax(x[, , "Miscanthus"], x[, , "Switchgrass"], na.rm = TRUE), "begr")
 
+  # Eucalyptus is only viable in warm/tropical climates. Mask its yield to NA in
+  # cold cells so pmax (with na.rm = TRUE) falls back to Poplar/Willow there,
+  # while warm cells still consider all three species.
   # betr: cell-wise maximum across woody crops; same na.rm rationale
-  betr <- setNames(pmax(x[, , "Eucalypt"], x[, , "Poplar"], x[, , "Willow"], na.rm = TRUE), "betr")
+  eucalypt <- x[, , "Eucalypt"]
+  eucalypt[climateWarm == 0] <- NA
+  betr <- setNames(pmax(eucalypt, x[, , "Poplar"], x[, , "Willow"], na.rm = TRUE), "betr")
 
   out <- mbind(begr, betr)
 
