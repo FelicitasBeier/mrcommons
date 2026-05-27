@@ -31,17 +31,14 @@ calcClimateClass <- function(datasource = "koeppen") {
       x <- toolAggregate(x, reduceIPCC, from = "ipcc", to = datasource, dim = 3, partrel = TRUE)
     }
   } else {
-    stop("Source inc calcClimateClass unkown.")
+    stop("Source in calcClimateClass unkown.")
   }
 
   weight <- calcOutput("LandArea", aggregate = FALSE)
 
-  return(list(
-    x = x,
-    weight = weight,
-    unit = "share",
-    description = paste("Climate classification according to:", datasource),
-    isocountries = FALSE
-  ))
-
+  return(list(x = x,
+              weight = weight,
+              unit = "share",
+              description = paste("Climate classification according to:", datasource),
+              isocountries = FALSE))
 }
