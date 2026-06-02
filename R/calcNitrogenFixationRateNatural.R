@@ -1,6 +1,5 @@
 #' @title calcNitrogenFixationRateNatural
 #' @description calculates fixation rates from natural ecosystems based on evapostranspiration
-#' @param cells "magpiecell" for 59199 cells or "lpjcell" for 67420 cells
 #' @return List of magpie objects with results on global level, empty weight, unit and description.
 #' @author Benjamin Leon Bodirsky
 #' @seealso
@@ -14,23 +13,19 @@
 #' @importFrom madrat calcOutput
 #' @importFrom magclass collapseNames dimSums setYears
 #' @importFrom magpiesets findset
+#' @importFrom mrlandcore toolLPJmLDefault
 
-calcNitrogenFixationRateNatural <- function(cells = "lpjcell") {
+calcNitrogenFixationRateNatural <- function() {
 
   years <- findset("past_til2020")
   years <- as.integer(gsub("y", "", years))
   # evapotranspiration (in m^3 per ha)
-  # HACKATHON: I removed the hard-coded lpjml and climatetype arguments
-  # And: In line with what we agreed on, I set it to historical and holdConstant
-  # Question: Ok like that?
   cfgLPJmL  <- mrlandcore::toolLPJmLDefault(suppressNote = FALSE)
   etRate <- calcOutput("LPJmLTransform",
                        lpjmlversion = cfgLPJmL$defaultLPJmLVersion,
-                       climatetype  = cfgLPJmL$baselineHist,
+                       climatetype  = cfgLPJmL$baselineGcm,
                        subtype      = "pnv:transp",
                        aggregate    = FALSE)
-  etRate <- toolHoldConstant(etRate, years = years)
-
   cyears <- intersect(getYears(etRate, as.integer = TRUE), years)
   etRate <- etRate[, cyears, ]
   startYear <- "y1965"
