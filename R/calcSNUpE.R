@@ -19,7 +19,7 @@
 #'
 calcSNUpE <- function(
     max_snupe = 0.85, # nolint: object_name_linter.
-    cellular = FALSE, rev = 0.1, maccbase = TRUE) {
+    cellular = FALSE, rev = "0.1", maccbase = TRUE) {
 
   a <- calcOutput("NitrogenBudgetCropland", max_snupe = max_snupe, aggregate = FALSE,
                   deposition = "Nsurplus2", cellular = cellular)
