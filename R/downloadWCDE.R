@@ -22,30 +22,34 @@
 #' @importFrom utils download.file
 downloadWCDE <- function(subtype = "epop_v3") {
 
+  referenceKC <- paste0("K.C., S., Dhakad, M., Potancokova, M., Adhikari, S., Yildiz, D., ",
+                        "Mamolo, M., Sobotka, T., Zeman, K., Abel, G., Lutz, W. and Goujon, A. (2024). ",
+                        "Updating the Shared Socioeconomic Pathways (SSPs) Global Population and ",
+                        "Human Capital Projections. IIASA Working Paper WP-24-003.")
+  referenceLutz <- paste0("Lutz, W., Goujon, A., K.C., S., Stonawski, M. and Stilianakis, N. (Eds.) (2018). ",
+                          "Demographic and Human Capital Scenarios for the 21st Century: 2018 assessment ",
+                          "for 201 countries. Publications Office of the European Union.")
+
   settings <- list(
     epop_v3 = list(
-      folder       = "wcde-v33-batch",
-      indicator    = "epop",
-      scenarios    = c(SSP1 = 1, SSP2 = 2, SSP3 = 3, SSP4 = 4, SSP5 = 5),
-      title        = "Wittgenstein Centre Data Explorer V3: Population Size by Education",
-      version      = "wcde-v3.3",
-      release_date = "2024-02-01",
-      doi          = "10.5281/zenodo.10618931",
-      reference    = paste0("K.C., S., Dhakad, M., Potancokova, M., Adhikari, S., Yildiz, D., ",
-                            "Mamolo, M., Sobotka, T., Zeman, K., Abel, G., Lutz, W. and Goujon, A. (2024). ",
-                            "Updating the Shared Socioeconomic Pathways (SSPs) Global Population and ",
-                            "Human Capital Projections. IIASA Working Paper WP-24-003.")),
+                   folder       = "wcde-v33-batch",
+                   indicator    = "epop",
+                   scenarios    = c(SSP1 = 1, SSP2 = 2, SSP3 = 3, SSP4 = 4, SSP5 = 5),
+                   title        = "Wittgenstein Centre Data Explorer V3: Population Size by Education",
+                   version      = "wcde-v3.3",
+                   release_date = "2024-02-01",
+                   doi          = "10.5281/zenodo.10618931",
+                   reference    = referenceKC),
+
     epop_v2 = list(
-      folder       = "wcde-v2-batch",
-      indicator    = "epop",
-      scenarios    = c(SSP2 = 2),
-      title        = "Wittgenstein Centre Data Explorer V2: Population Size by Education",
-      version      = "wcde-v2",
-      release_date = "2018-01-01",
-      doi          = NULL,
-      reference    = paste0("Lutz, W., Goujon, A., K.C., S., Stonawski, M. and Stilianakis, N. (Eds.) (2018). ",
-                            "Demographic and Human Capital Scenarios for the 21st Century: 2018 assessment ",
-                            "for 201 countries. Publications Office of the European Union."))
+                   folder       = "wcde-v2-batch",
+                   indicator    = "epop",
+                   scenarios    = c(SSP2 = 2),
+                   title        = "Wittgenstein Centre Data Explorer V2: Population Size by Education",
+                   version      = "wcde-v2",
+                   release_date = "2018-01-01",
+                   doi          = NULL,
+                   reference    = referenceLutz)
   )
   meta <- toolSubtypeSelect(subtype, settings)
 
@@ -67,10 +71,11 @@ downloadWCDE <- function(subtype = "epop_v3") {
     if (!success) stop("Download of \"", path, "\" failed on all servers!")
   }
 
+  authorWitt <- "Wittgenstein Centre for Demography and Global Human Capital (IIASA, OeAW, University of Vienna)"
   return(list(url          = paste0(servers[1], meta$folder, "/"),
               doi          = meta$doi,
               title        = meta$title,
-              author       = "Wittgenstein Centre for Demography and Global Human Capital (IIASA, OeAW, University of Vienna)",
+              author       = authorWitt,
               version      = meta$version,
               release_date = meta$release_date,
               description  = paste0("De facto population in a country by five-year age groups, sex and ",

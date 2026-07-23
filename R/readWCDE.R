@@ -21,8 +21,14 @@
 #'
 #' @importFrom reshape2 acast
 readWCDE <- function(subtype = "epop_v3") {
+  files <- sort(list.files(pattern = "\\.rds$"))
+  if (length(files) == 0) {
+    stop("No WCDE .rds files found. readSource(\"WCDE\") requires a subtype: use ",
+         "subtype = \"epop_v3\" (projections 2020-2100) or subtype = \"epop_v2\" ",
+         "(historical reconstruction).")
+  }
   merge <- list()
-  for (file in sort(list.files(pattern = "\\.rds$"))) {
+  for (file in files) {
     scenario <- sub("\\.rds$", "", file)
     d <- as.data.frame(readRDS(file), stringsAsFactors = FALSE)
 
