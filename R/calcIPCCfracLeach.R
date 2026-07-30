@@ -18,9 +18,8 @@
 #' a <- calcOutput("IPCCfracLeach", cellular = FALSE)
 #' }
 #'
-
-calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
-                              climatetype = "MRI-ESM2-0:ssp370",
+calcIPCCfracLeach <- function(lpjml       = "lpjml5.10.0-m4",
+                              climatetype = "MRI-ESM2-0:ssp245",
                               cellular    = TRUE) {
 
   if (cellular) {
@@ -39,18 +38,18 @@ calcIPCCfracLeach <- function(lpjml       = "lpjml5.9.5-m1",
                          climatetype  = climatetype,
                          subtype      = "pnv:pet",
                          aggregate    = FALSE) / 10 # unit transformation from mm -> m^3/ha
-    
+
     pet <- toolHoldConstant(pet, years = past)
     cyears <- intersect(getYears(pet, as.integer = TRUE), past)
     pet <- pet[, cyears, ]
 
-    # HACKATHON: prec is going to change and also need a unit transformation
-    precipitation   <- calcOutput("LPJmLClimateInput_new",
-                                  lpjmlVersion = "LPJmL4_for_MAgPIE_44ac93de",
-                                  climatetype  = "GSWP3-W5E5:historical",
-                                  variable = "precipitation:monthlySum",
-                                  stage = "smoothed",
-                                  aggregate = FALSE)
+    # extract default arguments for LPJmL
+    cfg <- toolLPJmLDefault()
+    # read in precipitation for default historical climate scenario used for LPJmL runs
+    precipitation <- calcOutput("LPJmLClimateInput", climatetype = cfg$baselineHist,
+                                variable = "precipitation:monthlySum", stage = "smoothed",
+                                lpjmlVersion = cfg$defaultLPJmLVersion, aggregate = FALSE)
+
     dimnames(precipitation)[[3]] <- as.character(seq(1, 12))
     precipitation <- toolHoldConstant(precipitation, years = past)
     precipitation <- precipitation[, cyears, ]
