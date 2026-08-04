@@ -19,7 +19,7 @@ projections) or "Lutz2014" (legacy data source)}
 \description{
 Population by age, sex and education.
 
-By default (version = "WCDE") the data is taken from the Wittgenstein Centre
+With version = "WCDE" the data is taken from the Wittgenstein Centre
 Human Capital Data Explorer: the historical reconstruction (1965-2015) from
 version 2 (Lutz et al. 2018) is combined with the updated SSP projections
 (2020-2100) from version 3 (K.C. et al. 2024). Education is aggregated to the
