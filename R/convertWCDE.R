@@ -7,11 +7,14 @@
 #' of subtype "epop_v2" goes back to 1950), the earliest available population
 #' estimate is held constant; this only affects small countries and territories.
 #' @param x magpie object provided by the read function
+#' @param subtype "epop_v3" or "epop_v2" (only needed so that readSource can
+#' resolve the default subtype consistently for read and convert; the country
+#' filling is identical for both subtypes)
 #'
 #' @seealso
 #' [readWCDE()], [convertLutz2014()]
 
-convertWCDE <- function(x) {
+convertWCDE <- function(x, subtype) {
 
   x <- toolCountryFill(x, fill = NA)
 

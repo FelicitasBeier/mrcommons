@@ -4,10 +4,14 @@
 \alias{convertWCDE}
 \title{convertWCDE}
 \usage{
-convertWCDE(x)
+convertWCDE(x, subtype)
 }
 \arguments{
 \item{x}{magpie object provided by the read function}
+
+\item{subtype}{"epop_v3" or "epop_v2" (only needed so that readSource can
+resolve the default subtype consistently for read and convert; the country
+filling is identical for both subtypes)}
 }
 \description{
 It fills the missing countries of the output of readWCDE with

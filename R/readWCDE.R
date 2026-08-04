@@ -6,8 +6,11 @@
 #' education in million people. In addition to the education categories of
 #' Lutz2014, the datasets contain a finer split of the highest levels
 #' ("Short Post Secondary", "Bachelor" and "Master and higher"). These belong
-#' to a separate classification level and do not sum to "Post Secondary"; in
-#' "epop_v2" they are reported as NA. World and continental aggregates
+#' to a separate classification level and do not sum to "Post Secondary".
+#' Age-education combinations that do not occur (e.g. a young child with a
+#' university degree) are set to 0, as in Lutz2014. Country-year slices that are
+#' entirely absent from the source (the pre-2015 reconstruction is missing for
+#' some countries in "epop_v2") are kept as NA. World and continental aggregates
 #' (UN M49 codes >= 900) are removed.
 #'
 #' @param subtype "epop_v3" (projections 2020-2100, K.C. et al. 2024) or
@@ -54,5 +57,28 @@ readWCDE <- function(subtype = "epop_v3") {
   merge <- do.call(mbind, merge)
   getSets(merge) <- c("country", "year", "scenario", "sex", "age", "education")
   merge <- merge / 1000
+
+  # The source omits age-education combinations that do not occur; after
+  # reshaping these appear as NA and are set to 0 (no such people), as in
+  # Lutz2014. Country-year-scenario slices that are entirely absent from the
+  # source (e.g. the pre-2015 reconstruction missing for some countries in
+  # epop_v2) are kept as NA so they can be backfilled in calcDemography.
+  # The missing slices are captured per scenario before zeroing, because
+  # collapseNames would drop the scenario dimension when only one exists.
+  scenarios <- getItems(merge, dim = "scenario")
+  missByScen <- lapply(scenarios, function(s) {
+    gt <- as.array(collapseNames(merge[, , s][, , "Total"][, , "Both"][, , "All"]))
+    is.na(gt[, , 1])
+  })
+  names(missByScen) <- scenarios
+
+  merge[is.na(merge)] <- 0
+
+  for (s in scenarios) {
+    miss <- missByScen[[s]]
+    for (country in rownames(miss)[apply(miss, 1, any)]) {
+      merge[country, colnames(miss)[miss[country, ]], s] <- NA
+    }
+  }
   return(merge)
 }
