@@ -22,8 +22,8 @@ convertISIMIP <- function(x, subtype) {
     # read in Landuse Initialisation landarea as weight
     landArea <- calcOutput("LandArea", aggregate = FALSE)
     landArea <- collapseDim(landArea, dim = "iso") + 10^-10
-    
-    
+
+
     x        <- collapseDim(x, dim = "region")
 
   } else {
